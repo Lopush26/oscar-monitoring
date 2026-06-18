@@ -1,0 +1,305 @@
+<!-- simulasi(belum dihubungkan dengan backend) -->
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>OSCAR Dashboard | Deteksi Dini OSCC</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Leaflet CSS (Peta) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="dashboard-container">
+    <div class="header">
+        <div class="logo-area">
+            <h1><i class="fas fa-tooth"></i> OSCAR</h1>
+            <p>Oral Squamous Cell carcinoma Automatic Recognition · Real-time multi-omics AI</p>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <div class="badge-status"><i class="fas fa-cloud-upload-alt"></i> IoT Cloud Sync</div>
+            <button class="btn-refresh" id="refreshBtn"><i class="fas fa-sync-alt"></i> Refresh Data</button>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Kartu 1: Diagnosis Real-time -->
+        <div class="card diagnosis-card">
+            <div class="diagnosis-label"><i class="fas fa-microscope"></i> HASIL DIAGNOSIS TERKINI</div>
+            <div class="diagnosis-result" id="diagnosisText">POSITIF</div>
+            <div class="probability" id="probValue">Probabilitas OSCC: 92%</div>
+            <div class="last-update" id="timestamp">Diperbaharui: 13/06/2026, 14:32:17</div>
+        </div>
+
+        <!-- Kartu 2: Biomarker saat ini -->
+        <div class="card">
+            <div class="card-title"><i class="fas fa-chart-line"></i> Biomarker Terkini (Saliva)</div>
+            <div id="biomarkerPanel">
+                <div class="biomarker-row">
+                    <span class="biomarker-name"><i class="fas fa-dna"></i> miRNA-31</span>
+                    <span class="biomarker-value" id="mirnaVal">78.4 <span class="unit">pg/mL</span></span>
+                </div>
+                <div class="biomarker-row">
+                    <span class="biomarker-name"><i class="fas fa-protein"></i> IL-8</span>
+                    <span class="biomarker-value" id="il8Val">1240 <span class="unit">pg/mL</span></span>
+                </div>
+                <div class="biomarker-row">
+                    <span class="biomarker-name"><i class="fas fa-flask"></i> Asam Laktat</span>
+                    <span class="biomarker-value" id="laktatVal">7.2 <span class="unit">mM</span></span>
+                </div>
+                <div class="biomarker-row">
+                    <span class="biomarker-name">Status AI (GNN)</span>
+                    <span class="biomarker-value" style="color:#1e6f5c;"><i class="fas fa-brain"></i> Deep Learning aktif</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kartu 3: Konektivitas IoT -->
+        <div class="card">
+            <div class="card-title"><i class="fas fa-wifi"></i> Status IoT & Geotagging</div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div><i class="fas fa-check-circle" style="color:#2c9c6e;"></i> Wi-Fi ESP32: <strong>Terhubung</strong></div>
+                <div><i class="fas fa-cloud-upload-alt"></i> Cloud Server: <span id="cloudStatus">Online</span></div>
+                <div><i class="fas fa-map-marker-alt"></i> Lokasi terakhir: <span id="geoLocation">Makassar, Sulsel</span></div>
+                <div><i class="fas fa-chart-simple"></i> Dataset harian: <span id="dailyCount">24</span> pemeriksaan</div>
+            </div>
+        </div>
+
+        <!-- Kartu 4: Informasi prototipe -->
+        <div class="card">
+            <div class="card-title"><i class="fas fa-microchip"></i> Sistem OSCAR</div>
+            <div>Electrochemical biosensor | 3 saluran SPCE</div>
+            <div>AI: Graph Neural Networks (GNN)</div>
+            <div>MCU: ESP32 + Raspberry Pi 4</div>
+            <div style="margin-top: 12px;"><i class="fas fa-chart-simple"></i> Akurasi target: >90%</div>
+            <div><i class="fas fa-clock"></i> Waktu respons: <30 menit</div>
+        </div>
+
+        <!-- Kartu 5: Grafik tren biomarker -->
+        <div class="card card-wide">
+            <div class="card-title"><i class="fas fa-chart-scatter"></i> Tren Biomarker (7 hari terakhir)</div>
+            <div class="chart-container">
+                <canvas id="trendChart" width="400" height="180" style="max-height:200px; width:100%"></canvas>
+            </div>
+        </div>
+
+        <!-- Kartu 6: Peta sebaran kasus -->
+        <div class="card card-wide">
+            <div class="card-title"><i class="fas fa-map"></i> Pemetaan Geografis Kasus OSCC</div>
+            <div id="map" style="height: 260px;"></div>
+            <div style="font-size: 0.7rem; margin-top: 8px; color:#5e7a8c;"><i class="fas fa-info-circle"></i> Marker: data agregasi anonim dari IoT</div>
+        </div>
+
+        <!-- Kartu 7: Riwayat pemeriksaan -->
+        <div class="card card-full">
+            <div class="card-title"><i class="fas fa-table-list"></i> Riwayat Pemeriksaan & Prediksi</div>
+            <div class="table-wrapper">
+                <table class="history-table" id="historyTable">
+                    <thead>
+                        <tr><th>ID Pemeriksaan</th><th>Tanggal</th><th>miRNA-31 (pg/mL)</th><th>IL-8 (pg/mL)</th><th>Asam Laktat (mM)</th><th>Hasil AI</th><th>Lokasi</th></tr>
+                    </thead>
+                    <tbody id="historyBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <footer>
+        OSCAR v1.0 - Real-time monitoring | Data simulasi untuk demonstrasi | Terintegrasi dengan cloud dashboard
+    </footer>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // ======================= DATA SIMULASI AWAL ======================
+    let currentData = {
+        diagnosis: "POSITIF",
+        prob: 0.92,
+        mirna: 78.4,
+        il8: 1240,
+        lactate: 7.2,
+        timestamp: new Date(),
+        location: "Makassar, Sulsel"
+    };
+
+    let historyData = [
+        { id: "OSC-001", date: "2026-06-12", mirna: 42.1, il8: 520, lactate: 3.2, result: "NEGATIF", loc: "Makassar" },
+        { id: "OSC-002", date: "2026-06-12", mirna: 112.5, il8: 1890, lactate: 9.4, result: "POSITIF", loc: "Gowa" },
+        { id: "OSC-003", date: "2026-06-11", mirna: 35.8, il8: 460, lactate: 2.1, result: "NEGATIF", loc: "Maros" },
+        { id: "OSC-004", date: "2026-06-11", mirna: 205.3, il8: 2450, lactate: 12.5, result: "POSITIF", loc: "Makassar" },
+        { id: "OSC-005", date: "2026-06-10", mirna: 68.2, il8: 890, lactate: 5.5, result: "POSITIF", loc: "Takalar" },
+        { id: "OSC-006", date: "2026-06-10", mirna: 22.4, il8: 310, lactate: 1.3, result: "NEGATIF", loc: "Makassar" },
+        { id: "OSC-007", date: "2026-06-09", mirna: 88.9, il8: 1120, lactate: 6.8, result: "POSITIF", loc: "Gowa" },
+        { id: "OSC-008", date: "2026-06-09", mirna: 29.6, il8: 400, lactate: 1.9, result: "NEGATIF", loc: "Maros" },
+        { id: "OSC-009", date: "2026-06-08", mirna: 145.2, il8: 1700, lactate: 8.2, result: "POSITIF", loc: "Sungguminasa" },
+        { id: "OSC-010", date: "2026-06-08", mirna: 52.7, il8: 760, lactate: 4.0, result: "POSITIF", loc: "Makassar" }
+    ];
+
+    let trendLabels = ["07/06", "08/06", "09/06", "10/06", "11/06", "12/06", "13/06"];
+    let mirnaTrend = [42, 68, 89, 75, 110, 128, 78];
+    let il8Trend = [480, 720, 1120, 980, 1350, 1820, 1240];
+    let lactateTrend = [2.1, 4.2, 6.2, 5.1, 8.3, 10.1, 7.2];
+
+    let chart;
+    let map;
+
+    function initMap() {
+        map = L.map('map').setView([-5.147665, 119.432732], 11);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> & CartoDB',
+            subdomains: 'abcd',
+            maxZoom: 18
+        }).addTo(map);
+        let markers = [
+            { lat: -5.154, lng: 119.432, name: "RSUP Wahidin", cases: 12 },
+            { lat: -5.190, lng: 119.475, name: "Puskesmas Panakkukang", cases: 5 },
+            { lat: -5.205, lng: 119.395, name: "RS Unhas", cases: 8 },
+            { lat: -5.124, lng: 119.486, name: "RS Pendidikan", cases: 3 }
+        ];
+        markers.forEach(m => {
+            L.marker([m.lat, m.lng]).addTo(map)
+                .bindPopup(`<b>${m.name}</b><br>Kasus terdeteksi: ${m.cases}<br>Metode OSCAR`);
+        });
+    }
+
+    function renderHistory() {
+        const tbody = document.getElementById('historyBody');
+        tbody.innerHTML = "";
+        historyData.forEach(row => {
+            let tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${row.id}</td>
+                <td>${row.date}</td>
+                <td>${row.mirna.toFixed(1)}</td>
+                <td>${row.il8}</td>
+                <td>${row.lactate.toFixed(1)}</td>
+                <td><span class="status-badge ${row.result === 'POSITIF' ? 'status-positif' : 'status-negatif'}">${row.result}</span></td>
+                <td>${row.loc}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function updateDashboardUI() {
+        document.getElementById('diagnosisText').innerText = currentData.diagnosis;
+        document.getElementById('probValue').innerHTML = `Probabilitas OSCC: ${(currentData.prob * 100).toFixed(0)}%`;
+        document.getElementById('mirnaVal').innerHTML = `${currentData.mirna.toFixed(1)} <span class="unit">pg/mL</span>`;
+        document.getElementById('il8Val').innerHTML = `${Math.round(currentData.il8)} <span class="unit">pg/mL</span>`;
+        document.getElementById('laktatVal').innerHTML = `${currentData.lactate.toFixed(1)} <span class="unit">mM</span>`;
+        const formattedTime = currentData.timestamp.toLocaleString('id-ID');
+        document.getElementById('timestamp').innerHTML = `Diperbaharui: ${formattedTime}`;
+        document.getElementById('geoLocation').innerText = currentData.location;
+        const diagCard = document.querySelector('.diagnosis-card');
+        if (currentData.diagnosis === "POSITIF") {
+            diagCard.style.background = "linear-gradient(135deg, #731c1c, #aa3e2c)";
+        } else {
+            diagCard.style.background = "linear-gradient(135deg, #0f2b3d, #1e6f5c)";
+        }
+    }
+
+    function refreshData() {
+        let newMirna = 20 + Math.random() * 180;
+        let newIl8 = 200 + Math.random() * 2300;
+        let newLact = 1 + Math.random() * 14;
+        let score = (newMirna / 100) + (newIl8 / 1500) + (newLact / 8);
+        let prob = Math.min(0.98, Math.max(0.05, score * 0.65));
+        let diagnosis = prob > 0.5 ? "POSITIF" : "NEGATIF";
+        
+        currentData = {
+            diagnosis: diagnosis,
+            prob: prob,
+            mirna: newMirna,
+            il8: newIl8,
+            lactate: newLact,
+            timestamp: new Date(),
+            location: ["Makassar", "Gowa", "Maros", "Takalar", "Sungguminasa"][Math.floor(Math.random() * 5)]
+        };
+        
+        let newId = "OSC-" + (Math.floor(Math.random() * 900) + 100);
+        let newRecord = {
+            id: newId,
+            date: new Date().toISOString().slice(0,10),
+            mirna: newMirna,
+            il8: newIl8,
+            lactate: newLact,
+            result: diagnosis,
+            loc: currentData.location
+        };
+        historyData.unshift(newRecord);
+        if (historyData.length > 12) historyData.pop();
+        
+        let todayStr = new Date().toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit'}).replace(/\//g,'/');
+        trendLabels.push(todayStr);
+        if (trendLabels.length > 7) trendLabels.shift();
+        mirnaTrend.push(newMirna);
+        if (mirnaTrend.length > 7) mirnaTrend.shift();
+        il8Trend.push(newIl8);
+        if (il8Trend.length > 7) il8Trend.shift();
+        lactateTrend.push(newLact);
+        if (lactateTrend.length > 7) lactateTrend.shift();
+        
+        if (chart) {
+            chart.data.labels = trendLabels;
+            chart.data.datasets[0].data = mirnaTrend;
+            chart.data.datasets[1].data = il8Trend;
+            chart.data.datasets[2].data = lactateTrend;
+            chart.update();
+        }
+        
+        document.getElementById('cloudStatus').innerHTML = "Online, sync " + new Date().toLocaleTimeString();
+        document.getElementById('dailyCount').innerHTML = (Math.floor(Math.random() * 30) + 10).toString();
+        renderHistory();
+        updateDashboardUI();
+    }
+    
+    function initChart() {
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: trendLabels,
+                datasets: [
+                    { label: 'miRNA-31 (pg/mL)', data: mirnaTrend, borderColor: '#e76f51', backgroundColor: 'transparent', tension: 0.2, fill: false, pointBackgroundColor: '#e76f51', yAxisID: 'y' },
+                    { label: 'IL-8 (pg/mL)', data: il8Trend, borderColor: '#2a9d8f', backgroundColor: 'transparent', tension: 0.2, fill: false, pointBackgroundColor: '#2a9d8f', yAxisID: 'y' },
+                    { label: 'Asam Laktat (mM)', data: lactateTrend, borderColor: '#e9c46a', backgroundColor: 'transparent', tension: 0.2, fill: false, pointBackgroundColor: '#e9c46a', yAxisID: 'y1' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { tooltip: { enabled: true }, legend: { position: 'top' } },
+                scales: {
+                    y: { title: { display: true, text: 'Konsentrasi (pg/mL)', color: '#2c3e4e' }, beginAtZero: true, grid: { color: '#eef2f5' } },
+                    y1: { position: 'right', title: { display: true, text: 'Asam Laktat (mM)' }, beginAtZero: true, grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+    }
+    
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+        refreshData();
+    });
+    
+    function initDashboard() {
+        initMap();
+        renderHistory();
+        updateDashboardUI();
+        initChart();
+        document.getElementById('cloudStatus').innerHTML = "Online";
+        document.getElementById('dailyCount').innerHTML = "24";
+    }
+    
+    initDashboard();
+    setInterval(() => {
+        refreshData();
+    }, 45000);
+</script>
+</body>
+</html>

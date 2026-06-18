@@ -1,0 +1,239 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #f4f7fc;
+    padding: 24px 20px;
+    color: #1e2a3e;
+}
+
+.dashboard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+.logo-area h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #0f2b3d, #1e6f5c);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    letter-spacing: -0.3px;
+}
+.logo-area p {
+    font-size: 0.85rem;
+    color: #5a6e7c;
+    margin-top: 4px;
+}
+.badge-status {
+    background: white;
+    padding: 8px 18px;
+    border-radius: 40px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+.badge-status i {
+    margin-right: 6px;
+    color: #2c9c6e;
+}
+.btn-refresh {
+    background: #1e6f5c;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 30px;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.btn-refresh:hover {
+    background: #0e5344;
+    transform: scale(0.98);
+}
+
+/* Grid utama */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+}
+
+/* Kartu umum */
+.card {
+    background: white;
+    border-radius: 28px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    padding: 20px 22px;
+    transition: 0.2s;
+}
+
+.card-full {
+    grid-column: span 4;
+}
+.card-wide {
+    grid-column: span 2;
+}
+
+.card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-left: 4px solid #1e6f5c;
+    padding-left: 14px;
+}
+.card-title i {
+    color: #1e6f5c;
+    font-size: 1.3rem;
+}
+
+/* Hasil diagnosis (kartu utama) */
+.diagnosis-card {
+    background: linear-gradient(135deg, #0f2b3d 0%, #1b4e44 100%);
+    color: white;
+    text-align: center;
+}
+.diagnosis-label {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 400;
+    opacity: 0.8;
+}
+.diagnosis-result {
+    font-size: 2.8rem;
+    font-weight: 800;
+    margin: 12px 0 8px;
+}
+.probability {
+    font-size: 1rem;
+    background: rgba(255,255,255,0.2);
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 40px;
+    font-weight: 500;
+}
+.last-update {
+    font-size: 0.7rem;
+    margin-top: 15px;
+    opacity: 0.7;
+}
+
+/* Biomarker */
+.biomarker-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #eef2f5;
+}
+.biomarker-name {
+    font-weight: 500;
+}
+.biomarker-value {
+    font-weight: 700;
+    font-family: monospace;
+    font-size: 1.1rem;
+}
+.unit {
+    font-size: 0.7rem;
+    font-weight: normal;
+    color: #6c7e8c;
+}
+
+/* Grafik */
+.chart-container {
+    margin-top: 8px;
+    height: 220px;
+}
+
+/* Tabel */
+.table-wrapper {
+    overflow-x: auto;
+}
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+.history-table th, .history-table td {
+    text-align: left;
+    padding: 12px 8px;
+    border-bottom: 1px solid #e9edf2;
+}
+.history-table th {
+    font-weight: 600;
+    color: #2c3e4e;
+}
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 30px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+.status-positif {
+    background: #fae6e2;
+    color: #c4452c;
+}
+.status-negatif {
+    background: #e0f2e9;
+    color: #1e6f5c;
+}
+
+/* Peta */
+#map {
+    height: 260px;
+    border-radius: 20px;
+    margin-top: 8px;
+    z-index: 1;
+}
+
+footer {
+    margin-top: 30px;
+    text-align: center;
+    font-size: 0.75rem;
+    color: #7a8e9b;
+}
+
+@media (max-width: 1000px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+    }
+    .card-wide {
+        grid-column: span 2;
+    }
+    .card-full {
+        grid-column: span 2;
+    }
+}
+@media (max-width: 640px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    .card-wide, .card-full {
+        grid-column: span 1;
+    }
+    body {
+        padding: 16px;
+    }
+}
