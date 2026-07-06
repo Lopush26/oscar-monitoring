@@ -1,5 +1,7 @@
 # OSCAR System - Oral Squamous Cell Carcinoma Automatic Recognition
 
+Project PKM-KC Unhas 2026
+
 ## Deskripsi
 Sistem deteksi dini OSCC berbasis multi-omics biomarker (miRNA-31, IL-8, Asam Laktat) dengan AI GNNs dan IoT.
 
