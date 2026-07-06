@@ -1,20 +1,36 @@
-# Dependencies
-node_modules/
-client/node_modules/
-server/node_modules/
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
 
-# Environment variables
-.env
-server/.env
-client/.env
+# testing
+/coverage
 
-# Logs
-*.log
+# next.js
+/.next/
+/out/
 
-# Build files
-dist/
-build/
+# production
+/build
 
-# OS
+# misc
 .DS_Store
-Thumbs.db
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+.env
+.env.production
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
