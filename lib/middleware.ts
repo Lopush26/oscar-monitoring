@@ -7,10 +7,14 @@ export type AuthenticatedRequest = NextRequest & {
   user: TokenPayload;
 };
 
+/**
+ * Middleware untuk melindungi API routes dengan JWT.
+ * Mendukung handler dengan parameter tambahan (misal: params).
+ */
 export function withAuth(
-  handler: (req: AuthenticatedRequest) => Promise<NextResponse>
+  handler: (req: AuthenticatedRequest, ...args: any[]) => Promise<NextResponse>
 ) {
-  return async (req: NextRequest): Promise<NextResponse> => {
+  return async (req: NextRequest, ...args: any[]): Promise<NextResponse> => {
     const authHeader = req.headers.get('authorization');
     if (!authHeader) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -28,6 +32,6 @@ export function withAuth(
 
     const reqWithUser = req as AuthenticatedRequest;
     reqWithUser.user = user;
-    return handler(reqWithUser);
+    return handler(reqWithUser, ...args);
   };
 }
