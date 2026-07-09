@@ -33,19 +33,19 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 
     const baseStyles = [
       'w-full rounded-lg border',
-      'bg-white dark:bg-slate-900',
-      'text-slate-900 dark:text-slate-100',
-      'placeholder:text-slate-400 dark:placeholder:text-slate-500',
-      'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent',
+      'bg-slate-950',
+      'text-slate-100',
+      'placeholder:text-slate-500',
+      'focus:outline-none focus:ring-1 focus:ring-slate-700 focus:border-transparent',
       'transition duration-200',
       'disabled:opacity-50 disabled:cursor-not-allowed',
-      'read-only:bg-slate-50 dark:read-only:bg-slate-800',
+      'read-only:bg-slate-900',
       sizeStyles[inputSize],
     ];
 
     const errorStyles = error
       ? 'border-red-500 focus:ring-red-500'
-      : 'border-slate-200 dark:border-slate-700';
+      : 'border-slate-800';
 
     const withLeftIcon = leftIcon ? 'pl-10' : '';
     const withRightIcon = rightIcon ? 'pr-10' : '';
@@ -55,7 +55,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={props.id}
-            className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
+            className="mb-1.5 block text-sm font-medium text-slate-300"
           >
             {label}
             {props.required && <span className="ml-1 text-red-500">*</span>}

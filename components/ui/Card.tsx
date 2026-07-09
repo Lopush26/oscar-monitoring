@@ -14,7 +14,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={twMerge(
-          "rounded-xl border border-border/30 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm shadow-md",
+          "rounded-xl border border-slate-800 bg-[#0a0f1d]/50 backdrop-blur-md shadow-lg",
           className
         )}
         {...props}

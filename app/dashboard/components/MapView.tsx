@@ -1,12 +1,11 @@
 // app/dashboard/components/MapView.tsx
 'use client';
 
-import { useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import { MapPin } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { useState, useEffect } from 'react';
 
-// ============================================================
-// INTERFACES
-// ============================================================
 interface MapLocation {
   lat: number;
   lng: number;
@@ -20,79 +19,66 @@ interface MapViewProps {
   zoom?: number;
 }
 
-// ============================================================
-// DYNAMIC IMPORT (SSR = FALSE)
-// ============================================================
-const MapContainer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.MapContainer),
-  { ssr: false }
-) as any;
+const MapInner = dynamic(() => import('./MapInner'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex flex-col items-center justify-center h-full gap-2 bg-slate-50/80 dark:bg-slate-800/30 rounded-lg">
+      <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+      <p className="text-[10px] text-muted-foreground">Memuat peta...</p>
+    </div>
+  ),
+});
 
-const TileLayer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.TileLayer),
-  { ssr: false }
-) as any;
-
-const Marker = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Marker),
-  { ssr: false }
-) as any;
-
-const Popup = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Popup),
-  { ssr: false }
-) as any;
-
-// ============================================================
-// KOMPONEN UTAMA
-// ============================================================
 export function MapView({ locations = [], center = [-2.5489, 118.0149], zoom = 5 }: MapViewProps) {
-  // Fix Leaflet icon di client side
+  const [hasError, setHasError] = useState(false);
+
   useEffect(() => {
-    const loadLeaflet = async () => {
-      const L = await import('leaflet');
-      // Hapus icon default bawaan Leaflet
-      delete (L as any).Icon.Default.prototype._getIconUrl;
-      (L as any).Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-      });
+    const handleError = (e: ErrorEvent) => {
+      if (e.message && (e.message.includes('leaflet') || e.message.includes('map'))) {
+        setHasError(true);
+      }
     };
-    loadLeaflet();
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
   }, []);
 
   return (
-    <div className="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-      <h3 className="text-sm font-semibold mb-2">🗺️ Sebaran Kasus</h3>
-      <div className="h-64 w-full rounded-lg overflow-hidden">
-        <MapContainer
-          center={center}
-          zoom={zoom}
-          style={{ height: '100%', width: '100%' }}
-          scrollWheelZoom={false}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          {locations.length > 0 ? (
-            locations.map((loc, idx) => (
-              <Marker key={idx} position={[loc.lat, loc.lng]}>
-                <Popup>
-                  {loc.label || `Lokasi ${idx + 1}`}
-                  <br />
-                  Intensitas: {loc.intensity !== undefined ? loc.intensity.toFixed(2) : 'N/A'}
-                </Popup>
-              </Marker>
-            ))
+    <Card className="glass-card">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-teal-100 dark:bg-teal-900/30">
+              <MapPin size={14} className="text-teal-600 dark:text-teal-400" strokeWidth={1.75} />
+            </div>
+            <div>
+              <CardTitle className="text-sm font-semibold">Sebaran Kasus</CardTitle>
+              <p className="text-[10px] text-muted-foreground">
+                {locations.length > 0 ? `${locations.length} lokasi terdaftar` : 'Belum ada data lokasi'}
+              </p>
+            </div>
+          </div>
+          {locations.length > 0 && (
+            <span className="badge badge-info">{locations.length} titik</span>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="h-48 w-full rounded-lg overflow-hidden border border-border/40">
+          {hasError ? (
+            <div className="flex flex-col items-center justify-center h-full gap-2 bg-slate-50/80 dark:bg-slate-800/30">
+              <MapPin size={24} className="text-muted-foreground/40" strokeWidth={1.25} />
+              <p className="text-xs text-muted-foreground">Gagal memuat peta</p>
+            </div>
+          ) : locations.length > 0 ? (
+            <MapInner locations={locations} center={center} zoom={zoom} />
           ) : (
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-              Belum ada lokasi yang tersedia
+            <div className="flex flex-col items-center justify-center h-full gap-2 bg-slate-50/80 dark:bg-slate-800/30">
+              <MapPin size={24} className="text-muted-foreground/40" strokeWidth={1.25} />
+              <p className="text-xs text-muted-foreground">Belum ada lokasi tersedia</p>
             </div>
           )}
-        </MapContainer>
-      </div>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
