@@ -164,7 +164,7 @@ export function DashboardGrid({
 
       {/* Footer */}
       <div className="text-center text-[10px] text-slate-500 pt-6">
-        OSCAR Elite System v1.2.1 | © 2026 Inovasi Medis
+        OSCAR System v1.1.1 | © 2026 PKM KC UNHAS
       </div>
     </div>
   );

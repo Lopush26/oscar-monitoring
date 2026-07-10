@@ -1,29 +1,13 @@
 // scripts/migrate.ts
-import mysql from 'mysql2/promise';
-import dotenv from 'dotenv';
-
-dotenv.config({ path: '.env.local' });
-
-const DB_CONFIG = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'oscar_db',
-};
+import { pool } from '../lib/db';
 
 async function migrate() {
-  const connection = await mysql.createConnection({
-    host: DB_CONFIG.host,
-    user: DB_CONFIG.user,
-    password: DB_CONFIG.password,
-  });
-
+  const connection = await pool.getConnection();
+  
   console.log('🔍 Running migrations...');
 
   const queries = [
-    `CREATE DATABASE IF NOT EXISTS ${DB_CONFIG.database}`,
-    `USE ${DB_CONFIG.database}`,
-
+    // Tabel Users
     `CREATE TABLE IF NOT EXISTS Users (
       id INT PRIMARY KEY AUTO_INCREMENT,
       username VARCHAR(50) UNIQUE NOT NULL,
@@ -32,6 +16,7 @@ async function migrate() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`,
 
+    // Tabel Measurements
     `CREATE TABLE IF NOT EXISTS Measurements (
       id INT PRIMARY KEY AUTO_INCREMENT,
       tracking_id VARCHAR(100) UNIQUE NOT NULL,
@@ -47,33 +32,38 @@ async function migrate() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       verified_at TIMESTAMP NULL,
       verified_by INT NULL,
+      notes TEXT NULL,
       FOREIGN KEY (verified_by) REFERENCES Users(id)
     )`,
 
+    // Tabel Audit_Logs
     `CREATE TABLE IF NOT EXISTS Audit_Logs (
       id INT PRIMARY KEY AUTO_INCREMENT,
       measurement_id INT,
       user_id INT,
       action VARCHAR(50),
       previous_value JSON,
-      timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (measurement_id) REFERENCES Measurements(id),
+      FOREIGN KEY (user_id) REFERENCES Users(id)
     )`,
 
-    `CREATE INDEX idx_status ON Measurements(status)`,
-    `CREATE INDEX idx_tracking ON Measurements(tracking_id)`,
-    `CREATE INDEX idx_created ON Measurements(created_at DESC)`,
+    // Index untuk performa
+    `CREATE INDEX IF NOT EXISTS idx_status ON Measurements(status)`,
+    `CREATE INDEX IF NOT EXISTS idx_tracking ON Measurements(tracking_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_created ON Measurements(created_at DESC)`,
   ];
 
   for (const query of queries) {
     try {
-      await connection.execute(query);
-      console.log(`✅ ${query.substring(0, 50)}...`);
+      await connection.query(query);
+      console.log(`✅ ${query.substring(0, 60)}...`);
     } catch (error) {
       console.error(`❌ Error: ${error}`);
     }
   }
 
-  await connection.end();
+  connection.release();
   console.log('✅ Migration completed!');
 }
 
