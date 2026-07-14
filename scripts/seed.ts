@@ -1,14 +1,11 @@
-// scripts/seed.ts
 import { pool } from '../lib/db';
 import bcrypt from 'bcryptjs';
 
 async function seed() {
   const connection = await pool.getConnection();
-  
   console.log('🌱 Seeding database...');
 
   try {
-    // Buat user admin
     const adminPassword = await bcrypt.hash('admin123', 10);
     await connection.query(
       `INSERT IGNORE INTO Users (username, password_hash, role) VALUES (?, ?, ?)`,
@@ -16,7 +13,6 @@ async function seed() {
     );
     console.log('✅ User admin created: admin / admin123');
 
-    // Buat user dokter (opsional)
     const dokterPassword = await bcrypt.hash('dokter123', 10);
     await connection.query(
       `INSERT IGNORE INTO Users (username, password_hash, role) VALUES 
@@ -26,7 +22,6 @@ async function seed() {
     );
     console.log('✅ User dokter created: dokter1 / dokter123, dokter2 / dokter123');
 
-    // Sample data Measurements
     await connection.query(
       `INSERT IGNORE INTO Measurements 
        (tracking_id, mirna31, lactate_uM, il8_pg_mg, status, ai_pred_class, ai_probability) 
@@ -36,13 +31,11 @@ async function seed() {
        ('OSC-DEMO-003', 3.4, 88.5, 36.5, 'raw', NULL, NULL)`
     );
     console.log('✅ Sample measurements seeded');
-
   } catch (error) {
     console.error('❌ Seed error:', error);
   } finally {
     connection.release();
   }
-
   console.log('✅ Seeding completed!');
 }
 

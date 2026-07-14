@@ -1,14 +1,18 @@
 // lib/db.ts
+import { config } from 'dotenv';
 import mysql from 'mysql2/promise';
 import fs from 'fs';
 import path from 'path';
+
+// Load .env.local SEBELUM membuat pool
+config({ path: '.env.local' });
 
 // Baca file CA certificate
 const caCert = fs.readFileSync(path.join(process.cwd(), 'lib', 'ca.pem'), 'utf8');
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT) || 3306,
+  port: Number(process.env.DB_PORT) || 22716,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,

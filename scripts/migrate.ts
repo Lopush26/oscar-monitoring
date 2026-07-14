@@ -1,13 +1,10 @@
-// scripts/migrate.ts
 import { pool } from '../lib/db';
 
 async function migrate() {
   const connection = await pool.getConnection();
-  
   console.log('🔍 Running migrations...');
 
   const queries = [
-    // Tabel Users
     `CREATE TABLE IF NOT EXISTS Users (
       id INT PRIMARY KEY AUTO_INCREMENT,
       username VARCHAR(50) UNIQUE NOT NULL,
@@ -16,7 +13,6 @@ async function migrate() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`,
 
-    // Tabel Measurements
     `CREATE TABLE IF NOT EXISTS Measurements (
       id INT PRIMARY KEY AUTO_INCREMENT,
       tracking_id VARCHAR(100) UNIQUE NOT NULL,
@@ -36,7 +32,6 @@ async function migrate() {
       FOREIGN KEY (verified_by) REFERENCES Users(id)
     )`,
 
-    // Tabel Audit_Logs
     `CREATE TABLE IF NOT EXISTS Audit_Logs (
       id INT PRIMARY KEY AUTO_INCREMENT,
       measurement_id INT,
@@ -48,18 +43,23 @@ async function migrate() {
       FOREIGN KEY (user_id) REFERENCES Users(id)
     )`,
 
-    // Index untuk performa
-    `CREATE INDEX IF NOT EXISTS idx_status ON Measurements(status)`,
-    `CREATE INDEX IF NOT EXISTS idx_tracking ON Measurements(tracking_id)`,
-    `CREATE INDEX IF NOT EXISTS idx_created ON Measurements(created_at DESC)`,
+    // Perbaikan: tanpa IF NOT EXISTS
+    `CREATE INDEX idx_status ON Measurements(status)`,
+    `CREATE INDEX idx_tracking ON Measurements(tracking_id)`,
+    `CREATE INDEX idx_created ON Measurements(created_at DESC)`,
   ];
 
   for (const query of queries) {
     try {
       await connection.query(query);
       console.log(`✅ ${query.substring(0, 60)}...`);
-    } catch (error) {
-      console.error(`❌ Error: ${error}`);
+    } catch (error: any) {
+      // Jika error karena index sudah ada, abaikan
+      if (error.message && error.message.includes('Duplicate key name')) {
+        console.log(`⚠️ Index sudah ada: ${query.substring(0, 50)}...`);
+      } else {
+        console.error(`❌ Error: ${error}`);
+      }
     }
   }
 
