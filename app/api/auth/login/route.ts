@@ -16,13 +16,11 @@ export async function POST(req: NextRequest) {
     const { username, password } = LoginSchema.parse(body);
 
     const pool = getPool();
-    // FIX: Hapus <mysql2.RowDataPacket[]> karena pool bertipe any
     const [rows] = await pool.execute(
       'SELECT id, username, password_hash, role FROM Users WHERE username = ?',
       [username]
     );
 
-    // Cast hasil query ke array of any (tidak mempengaruhi runtime)
     const users = rows as any[];
 
     if (users.length === 0) {
@@ -55,12 +53,23 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
 
+    // 🔥 PERBAIKAN COOKIE
+    const isProduction = process.env.NODE_ENV === 'production';
+    
     response.cookies.set('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24,
+      secure: isProduction,
+      maxAge: 60 * 60 * 24, // 24 jam
       path: '/',
-      sameSite: 'lax',
+      sameSite: isProduction ? 'none' : 'lax', // 🔥 Kunci!
+      domain: isProduction ? 'oscar-monitoringv1.vercel.app' : undefined,
+    });
+
+    console.log('✅ Cookie set:', {
+      path: '/',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      domain: isProduction ? 'oscar-monitoringv1.vercel.app' : 'localhost',
     });
 
     return response;
