@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -13,20 +15,13 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    // Validasi input
-    if (!username.trim() || !password.trim()) {
-      setError('Username dan password harus diisi');
-      setLoading(false);
-      return;
-    }
+    console.log('🔐 Mencoba login dengan:', username);
 
     try {
-      console.log('📡 Mengirim login request...');
-
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username.trim(), password: password.trim() }),
+        body: JSON.stringify({ username, password }),
         credentials: 'include',
       });
 
@@ -35,14 +30,21 @@ export default function LoginPage() {
       console.log('📡 Response data:', data);
 
       if (res.ok) {
-        console.log('✅ Login sukses, redirect ke dashboard...');
-        // Redirect ke dashboard
-        window.location.href = '/dashboard';
+        console.log('✅ Login sukses! Redirecting...');
+        
+        // Coba dengan router.push dulu (lebih smooth)
+        try {
+          await router.push('/dashboard');
+        } catch (routerError) {
+          console.warn('⚠️ router.push gagal, fallback ke window.location', routerError);
+          window.location.href = '/dashboard';
+        }
       } else {
         setError(data.error || 'Login gagal. Periksa username dan password.');
+        console.error('❌ Login gagal:', data.error);
       }
     } catch (err) {
-      console.error('❌ Login error:', err);
+      console.error('❌ Network error:', err);
       setError('Terjadi kesalahan jaringan. Coba lagi.');
     } finally {
       setLoading(false);
@@ -52,7 +54,6 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0a0f1d] px-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
             OSCAR
@@ -60,7 +61,6 @@ export default function LoginPage() {
           <p className="text-slate-400 text-sm mt-2">OSCC Detection System</p>
         </div>
 
-        {/* Card Login */}
         <div className="glass-card p-8">
           <h2 className="text-xl font-semibold text-white mb-6">Login</h2>
 
