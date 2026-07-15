@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Menu } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Menu, LogOut } from 'lucide-react';
 import { useState } from 'react';
 
 const navItems = [
@@ -14,7 +14,25 @@ const navItems = [
 
 export default function HeaderNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  const isActive = (href: string) => {
+    if (href === '/dashboard') return pathname === '/dashboard';
+    return pathname.startsWith(href);
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-800/80 bg-[#0a0f1d]/90 backdrop-blur-lg">
@@ -37,7 +55,7 @@ export default function HeaderNav() {
                 key={item.href}
                 href={item.href}
                 className={`transition-colors hover:text-white ${
-                  pathname === item.href ? 'text-blue-400' : 'text-slate-400'
+                  isActive(item.href) ? 'text-blue-400' : 'text-slate-400'
                 }`}
               >
                 {item.label}
@@ -45,12 +63,23 @@ export default function HeaderNav() {
             ))}
           </nav>
 
-          {/* Profile & Mobile toggle */}
+          {/* Profile & Actions */}
           <div className="flex items-center gap-3">
             <span className="hidden text-sm text-slate-400 sm:block">Dokter / Admin</span>
+            
             <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm">
               DA
             </div>
+
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
+              title="Logout"
+            >
+              <LogOut size={16} />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
+
             <button
               className="md:hidden text-slate-400 hover:text-white"
               onClick={() => setMobileOpen(!mobileOpen)}
@@ -68,13 +97,23 @@ export default function HeaderNav() {
                 key={item.href}
                 href={item.href}
                 className={`transition-colors hover:text-white ${
-                  pathname === item.href ? 'text-blue-400' : 'text-slate-400'
+                  isActive(item.href) ? 'text-blue-400' : 'text-slate-400'
                 }`}
                 onClick={() => setMobileOpen(false)}
               >
                 {item.label}
               </Link>
             ))}
+            <button
+              onClick={() => {
+                setMobileOpen(false);
+                handleLogout();
+              }}
+              className="flex items-center gap-2 text-red-400 hover:text-red-300 transition-colors"
+            >
+              <LogOut size={16} />
+              Logout
+            </button>
           </nav>
         )}
       </div>
