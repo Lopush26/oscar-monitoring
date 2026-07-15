@@ -1,44 +1,49 @@
-// middleware.ts - Global Next.js Middleware
+// middleware.ts (di root proyek)
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyToken } from './lib/auth';
 
-// Protected routes (pages)
 const PROTECTED_PAGES = ['/dashboard', '/verify'];
-
-// API routes that need auth (handled separately in lib/middleware)
-const PROTECTED_API = ['/api/measurements', '/api/admin'];
+const PUBLIC_PATHS = ['/api/auth/login', '/api/health'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip login, health, public assets
-  const isPublic = 
-    pathname === '/api/auth/login' ||
-    pathname === '/api/health' ||
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/public');
+  // Log untuk debugging
+  console.log('🔐 [Global Middleware] Path:', pathname);
 
-  if (isPublic) {
+  // Public paths
+  if (
+    PUBLIC_PATHS.some(p => pathname.startsWith(p)) ||
+    pathname === '/login' ||
+    pathname === '/' ||
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/public')
+  ) {
     return NextResponse.next();
   }
 
-  // Check if it's a protected page
+  // Protected pages
   const isProtectedPage = PROTECTED_PAGES.some(p => pathname.startsWith(p));
   if (isProtectedPage) {
     const token = request.cookies.get('token')?.value;
-    if (!token) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-    // Verify token (optional - can be done in page too)
-    const user = verifyToken(token);
-    if (!user) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-  }
+    console.log('🔐 [Global Middleware] Token exists?', !!token);
 
-  // API routes - token validation is done in each API route via withAuth
-  // Just pass through, the route will handle validation
+    if (!token) {
+      console.log('🔐 [Global Middleware] No token, redirect to /login');
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    const user = verifyToken(token);
+    console.log('🔐 [Global Middleware] User verified?', !!user);
+
+    if (!user) {
+      console.log('🔐 [Global Middleware] Invalid token, redirect to /login');
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    console.log('✅ [Global Middleware] Token valid, allow access to:', pathname);
+  }
 
   return NextResponse.next();
 }
