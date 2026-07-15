@@ -16,7 +16,7 @@ export default function DashboardPage() {
       try {
         console.log('📡 Fetching dashboard data...');
         const res = await fetch('/api/measurements', {
-          credentials: 'include', // Kirim cookie
+          credentials: 'include',
         });
 
         console.log('📡 Response status:', res.status);
@@ -47,7 +47,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-white">Memuat dashboard...</div>
+        <div className="text-white text-lg">Memuat dashboard...</div>
       </div>
     );
   }
@@ -55,51 +55,100 @@ export default function DashboardPage() {
   if (error || !data) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-red-400">{error || 'Data tidak tersedia'}</div>
+        <div className="text-red-400 text-lg">{error || 'Data tidak tersedia'}</div>
       </div>
     );
   }
 
-  // Map data dari API ke format DashboardGrid
-  const measurements = data.data || [];
+  // --- AMAN: parse data dari API ---
+  const measurements = Array.isArray(data.data) ? data.data : [];
 
   // Hitung statistik
   const total = measurements.length;
-  const osccCount = measurements.filter((m: any) => m.ai_pred_class === 'OSCC').length;
-  const pendingCount = measurements.filter((m: any) => m.status === 'raw').length;
+  const osccCount = measurements.filter(
+    (m: any) => m.ai_pred_class === 'OSCC'
+  ).length;
 
-  // Data untuk grafik (10 terakhir)
+  // Data untuk grafik (10 terakhir) - probability diparse ke number
   const chartData = measurements
     .slice(-10)
     .map((m: any) => ({
-      timestamp: new Date(m.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-      probability: m.ai_probability || 0,
-    }));
+      timestamp: m.created_at
+        ? new Date(m.created_at).toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+        : '--:--',
+      probability: typeof m.ai_probability === 'string'
+        ? parseFloat(m.ai_probability)
+        : typeof m.ai_probability === 'number'
+        ? m.ai_probability
+        : 0,
+    }))
+    .filter((item: any) => !isNaN(item.probability)); // buang yang NaN
 
   // Data untuk tabel riwayat
-  const historyData = measurements.slice(0, 10).map((m: any) => ({
-    id: m.tracking_id,
-    date: new Date(m.created_at).toLocaleString('id-ID'),
-    aiResult: m.status === 'raw' ? 'Pending' : (m.ai_pred_class || 'Normal') as 'OSCC' | 'Normal' | 'Pending',
-    probability: m.ai_probability,
-  }));
+  const historyData = measurements.slice(0, 10).map((m: any) => {
+    let aiResult: 'OSCC' | 'Normal' | 'Pending' = 'Pending';
+    if (m.status === 'verified') {
+      aiResult = m.ai_pred_class === 'OSCC' ? 'OSCC' : 'Normal';
+    } else if (m.status === 'raw') {
+      aiResult = 'Pending';
+    }
+    const prob = typeof m.ai_probability === 'string'
+      ? parseFloat(m.ai_probability)
+      : typeof m.ai_probability === 'number'
+      ? m.ai_probability
+      : undefined;
+    return {
+      id: m.tracking_id || 'N/A',
+      date: m.created_at
+        ? new Date(m.created_at).toLocaleString('id-ID')
+        : '-',
+      aiResult,
+      probability: prob && !isNaN(prob) ? prob : undefined,
+    };
+  });
 
   // Data biomarker terbaru
   const latest = measurements.length > 0 ? measurements[measurements.length - 1] : null;
-  const biomarkerData = latest ? [
-    { title: 'miRNA-31', value: latest.mirna31 || '--', unit: 'RQ', color: 'blue' as const },
-    { title: 'Asam Laktat', value: latest.lactate_uM ? (latest.lactate_uM / 1000).toFixed(2) : '--', unit: 'mM', color: 'orange' as const },
-    { title: 'IL-8', value: latest.il8_pg_mg || '--', unit: 'pg/mg', color: 'green' as const },
-  ] : [];
+  const biomarkerData = latest
+    ? [
+        {
+          title: 'miRNA-31',
+          value: latest.mirna31 ?? '--',
+          unit: 'RQ',
+          color: 'blue' as const,
+        },
+        {
+          title: 'Asam Laktat',
+          value: latest.lactate_uM
+            ? (latest.lactate_uM / 1000).toFixed(2)
+            : '--',
+          unit: 'mM',
+          color: 'orange' as const,
+        },
+        {
+          title: 'IL-8',
+          value: latest.il8_pg_mg ?? '--',
+          unit: 'pg/mg',
+          color: 'green' as const,
+        },
+      ]
+    : [];
 
   // Data lokasi (jika ada)
   const locations = measurements
     .filter((m: any) => m.lat_obfuscated && m.lng_obfuscated)
     .map((m: any) => ({
-      lat: m.lat_obfuscated,
-      lng: m.lng_obfuscated,
-      intensity: m.ai_probability ? m.ai_probability / 100 : 0.5,
-      label: m.tracking_id,
+      lat: parseFloat(m.lat_obfuscated),
+      lng: parseFloat(m.lng_obfuscated),
+      intensity: m.ai_probability
+        ? (typeof m.ai_probability === 'string'
+            ? parseFloat(m.ai_probability)
+            : m.ai_probability) / 100
+        : 0.5,
+      label: m.tracking_id || 'Lokasi',
     }));
 
   // Data pending cases
@@ -113,12 +162,20 @@ export default function DashboardPage() {
       created_at: m.created_at,
     }));
 
+  // Status card
+  const latestProb =
+    latest && latest.ai_probability
+      ? typeof latest.ai_probability === 'string'
+        ? parseFloat(latest.ai_probability)
+        : latest.ai_probability
+      : 0;
+
   return (
     <DashboardGrid
       statusData={{
         label: 'Sistem OSCAR',
         status: 'online' as const,
-        probability: latest?.ai_probability || 0,
+        probability: latestProb && !isNaN(latestProb) ? latestProb : 0,
       }}
       biomarkerData={biomarkerData}
       chartData={chartData}
