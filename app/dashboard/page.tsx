@@ -1,71 +1,131 @@
 // app/dashboard/page.tsx
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardGrid } from '@/app/dashboard/components/DashboardGrid';
 
 export default function DashboardPage() {
-  // ============================================
-  // DATA DUMMY (sementara)
-  // Nanti diganti dengan fetch dari API
-  // ============================================
-  const dummyStatus = {
-    label: 'Sistem OSCAR',
-    status: 'online' as const,
-    probability: 87.5,
-  };
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const dummyBiomarkers = [
-    { title: 'miRNA-31', value: 3.45, unit: 'RQ', color: 'blue' as const },
-    { title: 'Asam Laktat', value: 0.09, unit: 'mM', color: 'orange' as const },
-    { title: 'IL-8', value: 36.5, unit: 'pg/mg', color: 'green' as const },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        console.log('📡 Fetching dashboard data...');
+        const res = await fetch('/api/measurements', {
+          credentials: 'include', // Kirim cookie
+        });
 
-  const dummyChart = [
-    { timestamp: '08:00', probability: 45 },
-    { timestamp: '09:00', probability: 55 },
-    { timestamp: '10:00', probability: 70 },
-    { timestamp: '11:00', probability: 82 },
-    { timestamp: '12:00', probability: 65 },
-  ];
+        console.log('📡 Response status:', res.status);
 
-  const dummyHistory = [
-    { id: 'OSC-001', date: '2026-07-08 10:00', aiResult: 'OSCC' as const, probability: 92.3 },
-    { id: 'OSC-002', date: '2026-07-08 09:30', aiResult: 'Normal' as const, probability: 12.4 },
-    { id: 'OSC-003', date: '2026-07-08 08:45', aiResult: 'Pending' as const },
-  ];
+        if (!res.ok) {
+          if (res.status === 401) {
+            console.warn('🔒 Unauthorized, redirecting to login...');
+            router.push('/login');
+            return;
+          }
+          throw new Error(`HTTP ${res.status}`);
+        }
 
-  const dummyLocations = [
-    { lat: -2.5489, lng: 118.0149, intensity: 0.8, label: 'Makassar' },
-    { lat: -6.2088, lng: 106.8456, intensity: 0.3, label: 'Jakarta' },
-    { lat: -7.7974, lng: 110.3740, intensity: 0.5, label: 'Yogyakarta' },
-  ];
+        const result = await res.json();
+        console.log('✅ Data received:', result);
+        setData(result);
+      } catch (err) {
+        console.error('❌ Error fetching dashboard data:', err);
+        setError('Gagal memuat data dashboard');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-white">Memuat dashboard...</div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-red-400">{error || 'Data tidak tersedia'}</div>
+      </div>
+    );
+  }
+
+  // Map data dari API ke format DashboardGrid
+  const measurements = data.data || [];
+
+  // Hitung statistik
+  const total = measurements.length;
+  const osccCount = measurements.filter((m: any) => m.ai_pred_class === 'OSCC').length;
+  const pendingCount = measurements.filter((m: any) => m.status === 'raw').length;
+
+  // Data untuk grafik (10 terakhir)
+  const chartData = measurements
+    .slice(-10)
+    .map((m: any) => ({
+      timestamp: new Date(m.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+      probability: m.ai_probability || 0,
+    }));
+
+  // Data untuk tabel riwayat
+  const historyData = measurements.slice(0, 10).map((m: any) => ({
+    id: m.tracking_id,
+    date: new Date(m.created_at).toLocaleString('id-ID'),
+    aiResult: m.status === 'raw' ? 'Pending' : (m.ai_pred_class || 'Normal') as 'OSCC' | 'Normal' | 'Pending',
+    probability: m.ai_probability,
+  }));
+
+  // Data biomarker terbaru
+  const latest = measurements.length > 0 ? measurements[measurements.length - 1] : null;
+  const biomarkerData = latest ? [
+    { title: 'miRNA-31', value: latest.mirna31 || '--', unit: 'RQ', color: 'blue' as const },
+    { title: 'Asam Laktat', value: latest.lactate_uM ? (latest.lactate_uM / 1000).toFixed(2) : '--', unit: 'mM', color: 'orange' as const },
+    { title: 'IL-8', value: latest.il8_pg_mg || '--', unit: 'pg/mg', color: 'green' as const },
+  ] : [];
+
+  // Data lokasi (jika ada)
+  const locations = measurements
+    .filter((m: any) => m.lat_obfuscated && m.lng_obfuscated)
+    .map((m: any) => ({
+      lat: m.lat_obfuscated,
+      lng: m.lng_obfuscated,
+      intensity: m.ai_probability ? m.ai_probability / 100 : 0.5,
+      label: m.tracking_id,
+    }));
+
+  // Data pending cases
+  const pendingCases = measurements
+    .filter((m: any) => m.status === 'raw')
+    .slice(0, 5)
+    .map((m: any) => ({
+      id: m.id,
+      tracking_id: m.tracking_id,
+      patient_id: m.patient_id,
+      created_at: m.created_at,
+    }));
 
   return (
-    <div className="space-y-6">
-      {/* Header halaman */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Pantau deteksi dini OSCC secara real-time
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
-            ● Online
-          </span>
-          <span className="text-xs text-muted-foreground">
-            Last update: {new Date().toLocaleTimeString()}
-          </span>
-        </div>
-      </div>
-
-      {/* Grid Dashboard */}
-      <DashboardGrid
-        statusData={dummyStatus}
-        biomarkerData={dummyBiomarkers}
-        chartData={dummyChart}
-        historyData={dummyHistory}
-        mapLocations={dummyLocations}
-      />
-    </div>
+    <DashboardGrid
+      statusData={{
+        label: 'Sistem OSCAR',
+        status: 'online' as const,
+        probability: latest?.ai_probability || 0,
+      }}
+      biomarkerData={biomarkerData}
+      chartData={chartData}
+      historyData={historyData}
+      mapLocations={locations.length > 0 ? locations : undefined}
+      stats={{ total, osccCount }}
+      pendingCases={pendingCases}
+    />
   );
 }
