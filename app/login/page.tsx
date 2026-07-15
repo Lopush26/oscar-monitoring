@@ -94,7 +94,6 @@ export default function LoginPage() {
           </form>
 
           <p className="text-center text-xs text-slate-500 mt-6">
-            Demo: admin / admin123
           </p>
         </div>
       </div>
