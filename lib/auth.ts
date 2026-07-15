@@ -2,10 +2,10 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
-// Pastikan JWT_SECRET selalu ada
+// 🔴 WAJIB: JWT_SECRET harus ada di environment variables
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET is not defined in environment variables');
+  throw new Error('❌ JWT_SECRET is not defined in environment variables');
 }
 
 const JWT_EXPIRY = '7d';
@@ -21,11 +21,10 @@ export function signToken(userId: number, role: string): string {
 
 export function verifyToken(token: string): TokenPayload | null {
   try {
-    // Pastikan token diverifikasi dengan secret yang benar
     const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
+    console.log('✅ Token verified for user:', decoded.userId);
     return decoded;
   } catch (error) {
-    // Log error untuk debugging di Vercel
     console.error('❌ Token verification failed:', error);
     return null;
   }
