@@ -2,11 +2,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { DashboardGrid } from '@/app/dashboard/components/DashboardGrid';
 
 export default function DashboardPage() {
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -22,12 +20,11 @@ export default function DashboardPage() {
         console.log('📡 Response status:', res.status);
 
         if (!res.ok) {
-          if (res.status === 401) {
-            console.warn('🔒 Unauthorized, redirecting to login...');
-            router.push('/login');
-            return;
-          }
-          throw new Error(`HTTP ${res.status}`);
+          // ❌ TIDAK REDIRECT KE LOGIN!
+          console.error('❌ API error:', res.status);
+          setError(`Gagal memuat data (HTTP ${res.status})`);
+          setLoading(false);
+          return;
         }
 
         const result = await res.json();
@@ -35,41 +32,50 @@ export default function DashboardPage() {
         setData(result);
       } catch (err) {
         console.error('❌ Error fetching dashboard data:', err);
-        setError('Gagal memuat data dashboard');
+        setError('Terjadi kesalahan jaringan. Periksa koneksi internet Anda.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [router]);
+  }, []);
 
+  // ── Loading state ──
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-white text-lg">Memuat dashboard...</div>
+      <div className="flex items-center justify-center min-h-screen bg-[#0a0f1d]">
+        <div className="text-center">
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-400 text-sm">Memuat dashboard...</p>
+        </div>
       </div>
     );
   }
 
+  // ── Error state ──
   if (error || !data) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-red-400 text-lg">{error || 'Data tidak tersedia'}</div>
+      <div className="flex items-center justify-center min-h-screen bg-[#0a0f1d] px-4">
+        <div className="text-center">
+          <div className="text-4xl mb-4">⚠️</div>
+          <h2 className="text-xl font-semibold text-red-400 mb-2">
+            {error || 'Data tidak tersedia'}
+          </h2>
+          <p className="text-slate-400 text-sm">
+            Coba refresh halaman atau periksa koneksi internet.
+          </p>
+        </div>
       </div>
     );
   }
 
-  // --- AMAN: parse data dari API ---
+  // ── Parse data dari API ──
   const measurements = Array.isArray(data.data) ? data.data : [];
-
-  // Hitung statistik
   const total = measurements.length;
-  const osccCount = measurements.filter(
-    (m: any) => m.ai_pred_class === 'OSCC'
-  ).length;
+  const osccCount = measurements.filter((m: any) => m.ai_pred_class === 'OSCC').length;
 
-  // Data untuk grafik (10 terakhir) - probability diparse ke number
+  // Chart data (10 terakhir)
   const chartData = measurements
     .slice(-10)
     .map((m: any) => ({
@@ -79,15 +85,11 @@ export default function DashboardPage() {
             minute: '2-digit',
           })
         : '--:--',
-      probability: typeof m.ai_probability === 'string'
-        ? parseFloat(m.ai_probability)
-        : typeof m.ai_probability === 'number'
-        ? m.ai_probability
-        : 0,
+      probability: parseFloat(m.ai_probability) || 0,
     }))
-    .filter((item: any) => !isNaN(item.probability)); // buang yang NaN
+    .filter((item: any) => !isNaN(item.probability));
 
-  // Data untuk tabel riwayat
+  // History data
   const historyData = measurements.slice(0, 10).map((m: any) => {
     let aiResult: 'OSCC' | 'Normal' | 'Pending' = 'Pending';
     if (m.status === 'verified') {
@@ -95,22 +97,18 @@ export default function DashboardPage() {
     } else if (m.status === 'raw') {
       aiResult = 'Pending';
     }
-    const prob = typeof m.ai_probability === 'string'
-      ? parseFloat(m.ai_probability)
-      : typeof m.ai_probability === 'number'
-      ? m.ai_probability
-      : undefined;
+    const prob = parseFloat(m.ai_probability);
     return {
       id: m.tracking_id || 'N/A',
       date: m.created_at
         ? new Date(m.created_at).toLocaleString('id-ID')
         : '-',
       aiResult,
-      probability: prob && !isNaN(prob) ? prob : undefined,
+      probability: !isNaN(prob) ? prob : undefined,
     };
   });
 
-  // Data biomarker terbaru
+  // Biomarker terbaru
   const latest = measurements.length > 0 ? measurements[measurements.length - 1] : null;
   const biomarkerData = latest
     ? [
@@ -137,21 +135,17 @@ export default function DashboardPage() {
       ]
     : [];
 
-  // Data lokasi (jika ada)
+  // Lokasi (jika ada)
   const locations = measurements
     .filter((m: any) => m.lat_obfuscated && m.lng_obfuscated)
     .map((m: any) => ({
       lat: parseFloat(m.lat_obfuscated),
       lng: parseFloat(m.lng_obfuscated),
-      intensity: m.ai_probability
-        ? (typeof m.ai_probability === 'string'
-            ? parseFloat(m.ai_probability)
-            : m.ai_probability) / 100
-        : 0.5,
+      intensity: parseFloat(m.ai_probability) / 100 || 0.5,
       label: m.tracking_id || 'Lokasi',
     }));
 
-  // Data pending cases
+  // Pending cases
   const pendingCases = measurements
     .filter((m: any) => m.status === 'raw')
     .slice(0, 5)
@@ -162,20 +156,16 @@ export default function DashboardPage() {
       created_at: m.created_at,
     }));
 
-  // Status card
-  const latestProb =
-    latest && latest.ai_probability
-      ? typeof latest.ai_probability === 'string'
-        ? parseFloat(latest.ai_probability)
-        : latest.ai_probability
-      : 0;
+  // Probability terbaru
+  const latestProb = latest ? parseFloat(latest.ai_probability) || 0 : 0;
 
+  // ── Render DashboardGrid ──
   return (
     <DashboardGrid
       statusData={{
         label: 'Sistem OSCAR',
         status: 'online' as const,
-        probability: latestProb && !isNaN(latestProb) ? latestProb : 0,
+        probability: latestProb,
       }}
       biomarkerData={biomarkerData}
       chartData={chartData}
