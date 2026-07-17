@@ -7,8 +7,8 @@ import { z } from "zod";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent } from "@/components/ui/Card";
-import { ArrowLeft, Check, ShieldAlert, FileText, ChevronDown } from "lucide-react";
+import { Card } from "@/components/ui/Card";
+import { ArrowLeft, Check, ShieldAlert, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import {
   LineChart,
@@ -21,7 +21,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// Validation schema
 const verifySchema = z.object({
   notes: z.string().optional(),
 });
@@ -32,12 +31,12 @@ interface VerifyFormProps {
   measurement: {
     id: number;
     tracking_id: string;
-    mirna31: number;
-    lactate_uM: number;
-    il8_pg_mg: number;
+    mirna31: number | string;
+    lactate_uM: number | string;
+    il8_pg_mg: number | string;
     status: 'raw' | 'verified' | 'rejected';
     ai_pred_class: 'OSCC' | 'Normal' | null;
-    ai_probability: number | null;
+    ai_probability: number | string | null;
     patient_id: string | null;
     created_at: string;
   };
@@ -50,9 +49,7 @@ export function VerifyForm({ measurement }: VerifyFormProps) {
 
   const { register, handleSubmit } = useForm<VerifyFormData>({
     resolver: zodResolver(verifySchema),
-    defaultValues: {
-      notes: "",
-    },
+    defaultValues: { notes: "" },
   });
 
   const onSubmitStatus = async (status: 'verified' | 'rejected', data: VerifyFormData) => {
@@ -60,11 +57,9 @@ export function VerifyForm({ measurement }: VerifyFormProps) {
     setError(null);
 
     try {
-      const res = await fetch(`/api/measurements/${measurement.id}/verify`, {
+      const res = await fetch(`/api/measurements/${measurement.tracking_id}/verify`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           patient_id: measurement.patient_id || measurement.tracking_id,
           status: status,
@@ -77,8 +72,7 @@ export function VerifyForm({ measurement }: VerifyFormProps) {
         throw new Error(errorData.error || "Aksi gagal");
       }
 
-      router.push("/");
-      router.refresh();
+      router.push("/verifikasi");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
@@ -86,70 +80,45 @@ export function VerifyForm({ measurement }: VerifyFormProps) {
     }
   };
 
-  // Biomarker ranges configuration
-  const isMirnaHigh = measurement.mirna31 > 2.0;
-  const isLactateHigh = measurement.lactate_uM > 200;
-  const isIl8High = measurement.il8_pg_mg > 50;
+  // 🔥 Parsing semua nilai ke number
+  const mirna = Number(measurement.mirna31) || 0;
+  const lactate = Number(measurement.lactate_uM) || 0;
+  const il8 = Number(measurement.il8_pg_mg) || 0;
+  const prob = Number(measurement.ai_probability) || 0;
+
+  const isMirnaHigh = mirna > 2.0;
+  const isLactateHigh = lactate > 200;
+  const isIl8High = il8 > 50;
 
   const biomarkers = [
-    {
-      name: "IL-8",
-      val: measurement.il8_pg_mg,
-      unit: "pg/mg",
-      status: isIl8High ? "High" : "Normal",
-      isHigh: isIl8High,
-    },
-    {
-      name: "miRNA-31",
-      val: measurement.mirna31,
-      unit: "RQ",
-      status: isMirnaHigh ? "High" : "Normal",
-      isHigh: isMirnaHigh,
-    },
-    {
-      name: "Asam Laktat",
-      val: measurement.lactate_uM / 1000, // Show in mM (divide by 1000 to match typical clinical range)
-      unit: "mM",
-      status: isLactateHigh ? "High" : "Normal",
-      isHigh: isLactateHigh,
-    },
+    { name: "IL-8", val: il8, unit: "pg/mg", status: isIl8High ? "High" : "Normal", isHigh: isIl8High },
+    { name: "miRNA-31", val: mirna, unit: "RQ", status: isMirnaHigh ? "High" : "Normal", isHigh: isMirnaHigh },
+    { name: "Asam Laktat", val: lactate / 1000, unit: "mM", status: isLactateHigh ? "High" : "Normal", isHigh: isLactateHigh },
   ];
 
-  // Dummy 6 month trends for Recharts LineChart
-  const trendData = [
-    { name: "miRNA-31", Jan: 1.2, Feb: 1.5, Mar: 2.1, Apr: 2.3, May: 2.9, Jun: measurement.mirna31 },
-    { name: "IL-8", Jan: 25, Feb: 30, Mar: 45, Apr: 55, May: 48, Jun: measurement.il8_pg_mg },
-    { name: "Lactate", Jan: 80, Feb: 95, Mar: 120, Apr: 150, May: 175, Jun: measurement.lactate_uM / 10 },
-  ];
-
-  // Normalized Recharts LineChart data format
   const chartData = [
     { month: "Jan", "miRNA-31": 0.8, "IL-8": 1.2, "Lactate": 1.1 },
     { month: "Feb", "miRNA-31": 1.1, "IL-8": 1.5, "Lactate": 1.8 },
     { month: "Mar", "miRNA-31": 1.5, "IL-8": 2.1, "Lactate": 1.4 },
     { month: "Apr", "miRNA-31": 1.9, "IL-8": 1.7, "Lactate": 1.6 },
     { month: "May", "miRNA-31": 2.5, "IL-8": 2.8, "Lactate": 1.3 },
-    { month: "Jun", "miRNA-31": measurement.mirna31, "IL-8": measurement.il8_pg_mg / 20, "Lactate": (measurement.lactate_uM / 1500) },
+    { month: "Jun", "miRNA-31": mirna, "IL-8": il8 / 20, "Lactate": lactate / 1500 },
   ];
 
-  // AI Diagnostic details
-  const probVal = measurement.ai_probability ?? 0;
   const isPositive = measurement.ai_pred_class === "OSCC";
-
   const formattedDate = new Date(measurement.created_at).toLocaleDateString("id-ID", {
     day: "numeric",
     month: "numeric",
-    year: "numeric"
+    year: "numeric",
   });
 
   return (
     <div className="space-y-6">
-      
       {/* Back button & Title bar */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Link
-            href="/"
+            href="/verifikasi"
             className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-300 transition-colors"
           >
             <ArrowLeft size={16} />
@@ -173,10 +142,8 @@ export function VerifyForm({ measurement }: VerifyFormProps) {
 
       {/* Main Two-Column Layout */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        
-        {/* Left Column (40% width / 5 cols) */}
+        {/* Left Column */}
         <div className="space-y-6 lg:col-span-5">
-          
           {/* Patient Demographics */}
           <Card className="glass border-slate-800 bg-[#0a0f1d]/50 p-6">
             <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">
@@ -206,7 +173,7 @@ export function VerifyForm({ measurement }: VerifyFormProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-5xl font-extrabold tracking-tight text-red-500 tabular-nums">
-                  {probVal.toFixed(1)}%
+                  {prob.toFixed(1)}%
                 </p>
                 <p className="text-xs text-slate-400 mt-1 uppercase font-semibold tracking-wider">
                   Risk Probability
@@ -215,8 +182,6 @@ export function VerifyForm({ measurement }: VerifyFormProps) {
                   {isPositive ? 'OSCC Positive' : 'Normal / Low Risk'}
                 </p>
               </div>
-
-              {/* Green/teal medical sparkline */}
               <div className="opacity-80 shrink-0">
                 <svg className="w-32 h-16 text-emerald-400" viewBox="0 0 100 40">
                   <defs>
@@ -246,7 +211,6 @@ export function VerifyForm({ measurement }: VerifyFormProps) {
                 {...register("notes")}
               />
 
-              {/* Side-by-Side Action Buttons */}
               <div className="grid grid-cols-2 gap-4 pt-2">
                 <Button
                   variant="ghost"
@@ -258,7 +222,7 @@ export function VerifyForm({ measurement }: VerifyFormProps) {
                   <ShieldAlert size={16} />
                   Reject Data
                 </Button>
-                
+
                 <Button
                   type="button"
                   onClick={handleSubmit((data) => onSubmitStatus('verified', data))}
@@ -271,73 +235,29 @@ export function VerifyForm({ measurement }: VerifyFormProps) {
               </div>
             </form>
           </Card>
-
         </div>
 
-        {/* Right Column (60% width / 7 cols) */}
+        {/* Right Column */}
         <div className="space-y-6 lg:col-span-7">
-          
-          {/* Comprehensive Biomarker Data (Line Chart) */}
+          {/* Comprehensive Biomarker Data */}
           <Card className="glass border-slate-800 bg-[#0a0f1d]/50 p-6">
             <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">
               Comprehensive Biomarker Data
             </h3>
-            
             <div className="h-56 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" className="opacity-30" />
-                  <XAxis
-                    dataKey="month"
-                    tick={{ fontSize: 10, fill: '#64748b' }}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 10, fill: '#64748b' }}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#0a0f1d',
-                      borderColor: '#1e293b',
-                      borderRadius: '8px',
-                      fontSize: '11px',
-                    }}
-                  />
-                  <Legend
-                    wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }}
-                    iconType="circle"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="miRNA-31"
-                    stroke="#3b82f6"
-                    strokeWidth={2.5}
-                    dot={{ r: 3, strokeWidth: 0 }}
-                    name="miRNA-31"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="IL-8"
-                    stroke="#10b981"
-                    strokeWidth={2.5}
-                    dot={{ r: 3, strokeWidth: 0 }}
-                    name="IL-8"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="Lactate"
-                    stroke="#f97316"
-                    strokeWidth={2.5}
-                    dot={{ r: 3, strokeWidth: 0 }}
-                    name="Lactate"
-                  />
+                  <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#64748b' }} tickLine={false} axisLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickLine={false} axisLine={false} />
+                  <Tooltip contentStyle={{ backgroundColor: '#0a0f1d', borderColor: '#1e293b', borderRadius: '8px', fontSize: '11px' }} />
+                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} iconType="circle" />
+                  <Line type="monotone" dataKey="miRNA-31" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 3 }} name="miRNA-31" />
+                  <Line type="monotone" dataKey="IL-8" stroke="#10b981" strokeWidth={2.5} dot={{ r: 3 }} name="IL-8" />
+                  <Line type="monotone" dataKey="Lactate" stroke="#f97316" strokeWidth={2.5} dot={{ r: 3 }} name="Lactate" />
                 </LineChart>
               </ResponsiveContainer>
             </div>
-            
             <div className="flex justify-end text-[10px] text-slate-500 mt-2 font-medium">
               Last 6 month, 6 months
             </div>
@@ -348,7 +268,6 @@ export function VerifyForm({ measurement }: VerifyFormProps) {
             <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">
               Biomarker Table Review
             </h3>
-            
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
                 <thead>
@@ -365,8 +284,6 @@ export function VerifyForm({ measurement }: VerifyFormProps) {
                       <td className="py-3.5 font-medium">{b.name}</td>
                       <td className="py-3.5 font-mono">{b.val.toFixed(2)} {b.unit}</td>
                       <td className="py-3.5 text-center">
-                        
-                        {/* Styled Dropdown select container */}
                         <div className="relative inline-flex items-center">
                           <select className="appearance-none bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-medium py-1.5 pl-3 pr-8 rounded border border-slate-700 cursor-pointer focus:outline-none">
                             <option>Override Value</option>
@@ -375,7 +292,6 @@ export function VerifyForm({ measurement }: VerifyFormProps) {
                           </select>
                           <ChevronDown size={12} className="absolute right-2.5 text-slate-400 pointer-events-none" />
                         </div>
-
                       </td>
                       <td className="py-3.5 text-right">
                         <span className={`inline-flex items-center gap-1 font-semibold text-xs ${b.isHigh ? 'text-red-400' : 'text-emerald-400'}`}>
@@ -388,16 +304,13 @@ export function VerifyForm({ measurement }: VerifyFormProps) {
               </table>
             </div>
           </Card>
-
         </div>
-
       </div>
 
       {/* Footer */}
       <div className="text-center text-[10px] text-slate-500 pt-6">
-        OSCAR Clinical Review v1.0 | © 2026 Inovasi Medis
+        OSCAR Clinical Review v1.0 | © 2026 PKM KC Unhas
       </div>
-
     </div>
   );
 }
