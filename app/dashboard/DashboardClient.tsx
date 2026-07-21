@@ -19,7 +19,6 @@ export default function DashboardClient() {
         console.log('📡 Response status:', res.status);
 
         if (!res.ok) {
-          // ❌ TIDAK REDIRECT KE LOGIN!
           console.error('❌ API error:', res.status);
           setError(`Gagal memuat data (HTTP ${res.status})`);
           setLoading(false);
@@ -43,10 +42,10 @@ export default function DashboardClient() {
   // ── Loading state ──
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0a0f1d]">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-400 text-sm">Memuat dashboard...</p>
+          <p className="text-muted-foreground text-sm">Memuat dashboard...</p>
         </div>
       </div>
     );
@@ -55,13 +54,13 @@ export default function DashboardClient() {
   // ── Error state ──
   if (error || !data) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0a0f1d] px-4">
+      <div className="flex items-center justify-center min-h-[60vh] px-4">
         <div className="text-center">
           <div className="text-4xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-red-400 mb-2">
+          <h2 className="text-xl font-semibold text-red-500 dark:text-red-400 mb-2">
             {error || 'Data tidak tersedia'}
           </h2>
-          <p className="text-slate-400 text-sm">
+          <p className="text-muted-foreground text-sm">
             Coba refresh halaman atau periksa koneksi internet.
           </p>
         </div>

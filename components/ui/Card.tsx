@@ -2,7 +2,6 @@
 import { forwardRef, HTMLAttributes, ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
 
-// Type untuk Card
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   className?: string;
@@ -14,7 +13,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={twMerge(
-          "rounded-xl border border-slate-800 bg-[#0a0f1d]/50 backdrop-blur-md shadow-lg",
+          "rounded-xl border border-slate-200 bg-white/80 backdrop-blur-md shadow-md dark:border-slate-800 dark:bg-slate-900/50 dark:shadow-lg transition-colors duration-300",
           className
         )}
         {...props}
@@ -26,7 +25,6 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
 );
 Card.displayName = "Card";
 
-// Header
 const CardHeader = forwardRef<HTMLDivElement, CardProps>(
   ({ className, children, ...props }, ref) => (
     <div
@@ -40,12 +38,11 @@ const CardHeader = forwardRef<HTMLDivElement, CardProps>(
 );
 CardHeader.displayName = "CardHeader";
 
-// Title
 const CardTitle = forwardRef<HTMLParagraphElement, CardProps>(
   ({ className, children, ...props }, ref) => (
     <h3
       ref={ref}
-      className={twMerge("text-2xl font-semibold leading-none tracking-tight", className)}
+      className={twMerge("text-2xl font-semibold leading-none tracking-tight text-foreground", className)}
       {...props}
     >
       {children}
@@ -54,7 +51,6 @@ const CardTitle = forwardRef<HTMLParagraphElement, CardProps>(
 );
 CardTitle.displayName = "CardTitle";
 
-// Description
 const CardDescription = forwardRef<HTMLParagraphElement, CardProps>(
   ({ className, children, ...props }, ref) => (
     <p
@@ -68,7 +64,6 @@ const CardDescription = forwardRef<HTMLParagraphElement, CardProps>(
 );
 CardDescription.displayName = "CardDescription";
 
-// Content
 const CardContent = forwardRef<HTMLDivElement, CardProps>(
   ({ className, children, ...props }, ref) => (
     <div ref={ref} className={twMerge("p-6 pt-0", className)} {...props}>
@@ -78,7 +73,6 @@ const CardContent = forwardRef<HTMLDivElement, CardProps>(
 );
 CardContent.displayName = "CardContent";
 
-// Footer
 const CardFooter = forwardRef<HTMLDivElement, CardProps>(
   ({ className, children, ...props }, ref) => (
     <div

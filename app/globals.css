@@ -6,36 +6,59 @@
 @tailwind utilities;
 
 @layer base {
-  /* Default to dark medical theme directly on :root to avoid light-mode rendering issues */
+  /* ===== LIGHT MODE ===== */
   :root {
+    --background: 210 40% 96%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 214 32% 91%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;
+    --radius: 0.75rem;
+
+    --success: 160 84% 39%;
+    --warning: 38 92% 50%;
+    --danger: 0 84% 60%;
+  }
+
+  /* ===== DARK MODE ===== */
+  .dark {
     --background: 222 47% 6%;
     --foreground: 210 40% 96%;
     --card: 222 47% 9%;
     --card-foreground: 210 40% 96%;
     --popover: 222 47% 9%;
     --popover-foreground: 210 40% 96%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217 33% 18%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 15%;
-    --muted-foreground: 215 20.2% 60%;
-    --accent: 217.2 32.6% 17.5%;
+    --muted: 217 33% 15%;
+    --muted-foreground: 215 20% 60%;
+    --accent: 217 33% 18%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 50%;
+    --destructive: 0 63% 50%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 58%;
-    --radius: 0.75rem;
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 224 76% 58%;
 
-    /* Custom design tokens */
-    --sidebar-bg: 222 47% 5%;
-    --sidebar-text: 215 20% 55%;
-    --sidebar-active: 217.2 91.2% 59.8%;
-    --success: 142.1 76.2% 36.3%;
-    --warning: 37.7 92.1% 50.2%;
-    --danger: 0 84.2% 60.2%;
+    --success: 142 76% 36%;
+    --warning: 38 92% 50%;
+    --danger: 0 84% 60%;
   }
 
   * {
@@ -43,14 +66,17 @@
   }
 
   body {
-    @apply bg-[#0a0f1d] text-slate-100 antialiased;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 300ms ease, color 300ms ease;
   }
 
   html {
     scroll-behavior: smooth;
-    background-color: #0a0f1d;
   }
 }
 
@@ -59,73 +85,67 @@
    ============================ */
 @layer utilities {
   .glass {
-    @apply bg-slate-900/60 backdrop-blur-md border border-slate-800/80 shadow-lg;
-  }
-
-  .glass-light {
-    @apply bg-[#0c1222]/80 backdrop-blur-md border border-slate-800/80 shadow-md;
-  }
-
-  .glass-dark {
-    @apply bg-slate-950/70 backdrop-blur-md border border-slate-800/80 shadow-lg;
+    @apply bg-white/70 backdrop-blur-md border border-slate-200/80 shadow-md
+           dark:bg-slate-900/60 dark:border-slate-800/80 dark:shadow-lg;
   }
 
   .glass-card {
-    @apply rounded-xl bg-slate-900/40 backdrop-blur-md 
-           border border-slate-800/80 
-           shadow-[0_1px_3px_rgba(0,0,0,0.3),0_4px_16px_rgba(0,0,0,0.2)];
+    @apply rounded-xl bg-white/80 backdrop-blur-md
+           border border-slate-200/80
+           shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_16px_rgba(0,0,0,0.04)]
+           dark:bg-slate-900/40 dark:border-slate-800/80
+           dark:shadow-[0_1px_3px_rgba(0,0,0,0.3),0_4px_16px_rgba(0,0,0,0.2)]
+           transition-colors duration-300;
   }
 
   .text-balance {
     text-wrap: balance;
   }
 
-  /* Gradient text */
   .gradient-text {
-    @apply bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-blue-500 to-indigo-500 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent;
   }
 
-  /* Stat number styling */
   .stat-number {
     @apply text-3xl font-bold tracking-tight tabular-nums;
   }
 
-  /* Card hover effect */
   .card-hover {
-    @apply transition-all duration-200 hover:shadow-xl hover:border-slate-700/80;
+    @apply transition-all duration-200 hover:shadow-xl
+           hover:border-slate-300 dark:hover:border-slate-700/80;
   }
 
-  /* Status badge base */
   .badge {
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
   }
 
   .badge-success {
-    @apply bg-emerald-950/50 text-emerald-400 border border-emerald-500/20;
+    @apply bg-emerald-100 text-emerald-700 border border-emerald-200
+           dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-500/20;
   }
 
   .badge-danger {
-    @apply bg-red-950/50 text-red-400 border border-red-500/20;
+    @apply bg-red-100 text-red-700 border border-red-200
+           dark:bg-red-950/50 dark:text-red-400 dark:border-red-500/20;
   }
 
   .badge-warning {
-    @apply bg-amber-950/50 text-amber-400 border border-amber-500/20;
+    @apply bg-amber-100 text-amber-700 border border-amber-200
+           dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-500/20;
   }
 
   .badge-info {
-    @apply bg-blue-950/50 text-blue-400 border border-blue-500/20;
+    @apply bg-blue-100 text-blue-700 border border-blue-200
+           dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-500/20;
   }
 
   .badge-muted {
-    @apply bg-slate-800 text-slate-400 border border-slate-700;
+    @apply bg-slate-100 text-slate-600 border border-slate-200
+           dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700;
   }
 }
 
-/* ============================
-   ANIMATIONS
-   ============================ */
 @layer utilities {
-  /* Pulse ring for online status */
   .pulse-ring {
     @apply relative;
   }
@@ -135,23 +155,19 @@
     @apply absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75;
   }
 
-  /* Sidebar active glow */
   .sidebar-item-active {
-    @apply bg-blue-500/15 text-blue-400 border-l-2 border-blue-400;
+    @apply bg-blue-500/15 text-blue-500 dark:text-blue-400 border-l-2 border-blue-500 dark:border-blue-400;
   }
 
   .sidebar-item {
     @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-           text-slate-400
-           hover:bg-slate-800/60
-           hover:text-slate-200
+           text-slate-600 dark:text-slate-400
+           hover:bg-slate-100 dark:hover:bg-slate-800/60
+           hover:text-slate-900 dark:hover:text-slate-200
            transition-all duration-150 cursor-pointer;
   }
 }
 
-/* ============================
-   CUSTOM SCROLLBAR
-   ============================ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -162,17 +178,16 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-700 rounded-full;
+  @apply bg-slate-300 dark:bg-slate-700 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-600;
+  @apply bg-slate-400 dark:bg-slate-600;
 }
 
-/* RECHARTS CUSTOM COLORS */
 .recharts-cartesian-grid-horizontal line,
 .recharts-cartesian-grid-vertical line {
-  stroke: #1e293b;
+  stroke: hsl(var(--border));
   opacity: 0.3;
 }
 

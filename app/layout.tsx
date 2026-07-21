@@ -18,10 +18,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id" suppressHydrationWarning className={inter.variable}>
-      <body className="min-h-screen bg-[#0a0f1d] text-slate-100 antialiased font-sans">
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
+      <body className="min-h-screen bg-background text-foreground antialiased font-sans transition-colors duration-300">
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange={false}>
           <HeaderNav />
-          <main className="min-h-[calc(100vh-4rem)] bg-[#0a0f1d]">
+          <main className="min-h-[calc(100vh-4rem)] bg-background transition-colors duration-300">
             <div className="mx-auto max-w-7xl px-4 py-6 md:px-8">
               {children}
             </div>

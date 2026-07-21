@@ -9,7 +9,6 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Semantic colors wired to CSS variables
         background:  'hsl(var(--background))',
         foreground:  'hsl(var(--foreground))',
         border:      'hsl(var(--border))',
@@ -42,6 +41,14 @@ module.exports = {
         popover: {
           DEFAULT:    'hsl(var(--popover))',
           foreground: 'hsl(var(--popover-foreground))',
+        },
+        medical: {
+          blue:    '#2563EB',
+          green:   '#059669',
+          yellow:  '#D97706',
+          red:     '#DC2626',
+          purple:  '#7C3AED',
+          teal:    '#0D9488',
         },
       },
       borderRadius: {

@@ -13,6 +13,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { TrendingUp, BarChart3 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 
 interface ChartDataPoint {
@@ -28,7 +29,7 @@ interface TrendChartProps {
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="glass-card rounded-lg px-3 py-2 text-xs shadow-xl border border-border/50">
+    <div className="glass-card rounded-lg px-3 py-2 text-xs shadow-xl border border-border/50 bg-background/95">
       <p className="font-semibold text-foreground mb-1">⏱ {label}</p>
       {payload.map((p: any) => (
         <p key={p.dataKey} style={{ color: p.color }} className="font-medium">
@@ -40,10 +41,15 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 export function TrendChart({ data = [] }: TrendChartProps) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const hasData = data.length > 0;
   const latest = hasData ? data[data.length - 1].probability : null;
   const prev = hasData && data.length > 1 ? data[data.length - 2].probability : null;
   const delta = latest !== null && prev !== null ? (latest - prev).toFixed(1) : null;
+
+  const gridColor = isDark ? '#1e293b' : '#e2e8f0';
+  const tickColor = isDark ? '#94a3b8' : '#64748b';
 
   return (
     <Card className="glass-card">
@@ -54,7 +60,7 @@ export function TrendChart({ data = [] }: TrendChartProps) {
               <BarChart3 size={14} className="text-blue-600 dark:text-blue-400" strokeWidth={1.75} />
             </div>
             <div>
-              <CardTitle className="text-sm font-semibold">Tren Probabilitas OSCC</CardTitle>
+              <CardTitle className="text-sm font-semibold text-foreground">Tren Probabilitas OSCC</CardTitle>
               <p className="text-[10px] text-muted-foreground">Riwayat pengukuran real-time</p>
             </div>
           </div>
@@ -65,7 +71,7 @@ export function TrendChart({ data = [] }: TrendChartProps) {
               </span>
             )}
             {delta !== null && (
-              <span className={`flex items-center gap-0.5 text-xs font-medium ${Number(delta) >= 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+              <span className={`flex items-center gap-0.5 text-xs font-medium ${Number(delta) >= 0 ? 'text-red-500 dark:text-red-400' : 'text-emerald-500 dark:text-emerald-400'}`}>
                 <TrendingUp size={12} className={Number(delta) < 0 ? 'rotate-180' : ''} />
                 {delta}
               </span>
@@ -76,7 +82,7 @@ export function TrendChart({ data = [] }: TrendChartProps) {
       </CardHeader>
       <CardContent>
         {!hasData ? (
-          <div className="flex flex-col items-center justify-center h-48 gap-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/30 border border-dashed border-border">
+          <div className="flex flex-col items-center justify-center h-48 gap-3 rounded-xl bg-slate-50 dark:bg-slate-800/30 border border-dashed border-border">
             <BarChart3 size={28} className="text-muted-foreground/40" strokeWidth={1.25} />
             <p className="text-sm text-muted-foreground">Belum ada data pengukuran</p>
           </div>
@@ -84,16 +90,16 @@ export function TrendChart({ data = [] }: TrendChartProps) {
           <div className="h-56 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" className="opacity-40" />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} opacity={0.4} />
                 <XAxis
                   dataKey="timestamp"
-                  tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                  tick={{ fontSize: 10, fill: tickColor }}
                   tickLine={false}
                   axisLine={false}
                 />
                 <YAxis
                   domain={[0, 100]}
-                  tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                  tick={{ fontSize: 10, fill: tickColor }}
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={(v) => `${v}%`}
@@ -110,7 +116,7 @@ export function TrendChart({ data = [] }: TrendChartProps) {
                   stroke="#3b82f6"
                   strokeWidth={2.5}
                   dot={{ r: 2.5, fill: '#3b82f6', strokeWidth: 0 }}
-                  activeDot={{ r: 4.5, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }}
+                  activeDot={{ r: 4.5, fill: '#3b82f6', strokeWidth: 2, stroke: isDark ? '#1e293b' : '#fff' }}
                   name="Probabilitas (%)"
                 />
               </LineChart>
