@@ -1,4 +1,6 @@
 // app/api/measurements/route.ts
+export const dynamic = 'force-dynamic'; 
+
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getPool } from '@/lib/db';

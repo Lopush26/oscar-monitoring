@@ -1,4 +1,6 @@
 // app/api/admin/logs/route.ts
+export const dynamic = 'force-dynamic'; 
+
 import { NextResponse } from 'next/server';
 import { getPool } from '@/lib/db';
 import { withAuth, AuthenticatedRequest } from '@/lib/middleware';
