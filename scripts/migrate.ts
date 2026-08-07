@@ -44,6 +44,9 @@ async function migrate() {
     )`,
 
     // Perbaikan: tanpa IF NOT EXISTS
+    `ALTER TABLE Measurements ADD COLUMN age INT NULL`,
+    `ALTER TABLE Measurements ADD COLUMN gender VARCHAR(10) NULL`,
+    `ALTER TABLE Measurements ADD COLUMN deleted_at TIMESTAMP NULL`,
     `CREATE INDEX idx_status ON Measurements(status)`,
     `CREATE INDEX idx_tracking ON Measurements(tracking_id)`,
     `CREATE INDEX idx_created ON Measurements(created_at DESC)`,
@@ -57,6 +60,8 @@ async function migrate() {
       // Jika error karena index sudah ada, abaikan
       if (error.message && error.message.includes('Duplicate key name')) {
         console.log(`⚠️ Index sudah ada: ${query.substring(0, 50)}...`);
+      } else if (error.message && error.message.includes('Duplicate column name')) {
+        console.log(`⚠️ Column sudah ada: ${query.substring(0, 50)}...`);
       } else {
         console.error(`❌ Error: ${error}`);
       }

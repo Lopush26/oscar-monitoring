@@ -1,6 +1,7 @@
 // app/verify/[id]/page.tsx
 import { getPool } from '@/lib/db';
 import { VerifyForm } from '@/components/forms/VerifyForm';
+import { getCurrentUser } from '@/lib/auth-server';
 
 interface VerifyPageProps {
   params: {
@@ -11,6 +12,7 @@ interface VerifyPageProps {
 export default async function VerifyPage({ params }: VerifyPageProps) {
   const { id } = await params;
   let measurement: any = null;
+  const user = getCurrentUser();
 
   try {
     // Ambil data measurement dari database
@@ -26,7 +28,9 @@ export default async function VerifyPage({ params }: VerifyPageProps) {
         ai_pred_class, 
         ai_probability,
         patient_id,
-        created_at
+        created_at,
+        age,
+        gender
        FROM Measurements 
        WHERE tracking_id = ? OR id = ?`,
       [id, isNaN(Number(id)) ? null : Number(id)]
@@ -53,13 +57,15 @@ export default async function VerifyPage({ params }: VerifyPageProps) {
       ai_probability: 87.5,
       patient_id: id,
       created_at: '2023-12-26T14:32:00Z',
+      age: null,
+      gender: null,
     };
   }
 
   return (
     <div className="text-slate-100">
       {/* Kirim measurement data ke VerifyForm */}
-      <VerifyForm measurement={measurement} />
+      <VerifyForm measurement={measurement} role={user?.role} />
     </div>
   );
 }

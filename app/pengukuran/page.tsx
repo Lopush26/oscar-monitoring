@@ -8,23 +8,44 @@ import { Card } from '@/components/ui/Card';
 export default function PengukuranPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState('');
+
+  const fetchData = async () => {
+    try {
+      const res = await fetch('/api/measurements', { credentials: 'include' });
+      if (res.ok) {
+        const result = await res.json();
+        setData(result.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching measurements:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch('/api/measurements', { credentials: 'include' });
-        if (res.ok) {
-          const result = await res.json();
-          setData(result.data || []);
-        }
-      } catch (error) {
-        console.error('Error fetching measurements:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetch('/api/auth/me').then(r => r.json()).then(d => {
+       if (d && d.role) setRole(d.role);
+    }).catch(() => {});
     fetchData();
   }, []);
+
+  const handleDelete = async (trackingId: string) => {
+    if (!confirm("Are you sure you want to delete this data?")) return;
+    try {
+      const res = await fetch(`/api/measurements/${trackingId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Only admins can perform this action or delete failed.");
+      }
+      fetchData();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -57,6 +78,7 @@ export default function PengukuranPage() {
                   <th className="text-left py-2 text-muted-foreground font-semibold">IL-8 (pg/mg)</th>
                   <th className="text-left py-2 text-muted-foreground font-semibold">Status</th>
                   <th className="text-left py-2 text-muted-foreground font-semibold">Prob.</th>
+                  <th className="text-right py-2 text-muted-foreground font-semibold">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -77,7 +99,19 @@ export default function PengukuranPage() {
                         {item.status || 'raw'}
                       </span>
                     </td>
-                    <td className="py-3 text-foreground">{item.ai_probability ? `${item.ai_probability}%` : '-'}</td>
+                    <td className="py-3 text-foreground">{item.ai_probability ? `${Number(item.ai_probability).toFixed(1)}%` : '-'}</td>
+                    <td className="py-3 text-right">
+                      {role === 'admin' ? (
+                        <button
+                          onClick={() => handleDelete(item.tracking_id)}
+                          className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-semibold transition-colors duration-200"
+                        >
+                          Hapus
+                        </button>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">-</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

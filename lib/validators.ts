@@ -14,6 +14,8 @@ export const MeasurementSchema = z.object({
   il8_pg_mg: z.number().min(0),
   lat: z.number().optional(),
   lng: z.number().optional(),
+  ai_pred_class: z.string().optional(),
+  ai_probability: z.number().optional(),
 });
 
 // Verify (dokter)

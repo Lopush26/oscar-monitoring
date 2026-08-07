@@ -136,9 +136,19 @@ export const DELETE = withAuth(async (req: any, user: any) => {
 
     const pool = getPool();
 
+    const [existing] = await pool.query(
+      'SELECT status FROM Measurements WHERE id = ? OR tracking_id = ?',
+      [isNaN(Number(id)) ? null : Number(id), id]
+    );
+    const existingData = (existing as any[])[0];
+
+    if (!existingData) {
+      return NextResponse.json({ error: 'Measurement not found' }, { status: 404 });
+    }
+
     const [result] = await pool.query(
-      'DELETE FROM Measurements WHERE id = ?',
-      [id]
+      'UPDATE Measurements SET deleted_at = NOW() WHERE id = ? OR tracking_id = ?',
+      [isNaN(Number(id)) ? null : Number(id), id]
     );
 
     const deleteResult = result as any;

@@ -40,15 +40,56 @@ interface VerifyFormProps {
     ai_probability: number | string | null;
     patient_id: string | null;
     created_at: string;
+    age: number | null;
+    gender: string | null;
   };
+  role?: string;
 }
 
-export function VerifyForm({ measurement }: VerifyFormProps) {
+export function VerifyForm({ measurement, role }: VerifyFormProps) {
   const router = useRouter();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [age, setAge] = useState<string>(measurement.age?.toString() || "");
+  const [gender, setGender] = useState<string>(measurement.gender || "");
+  const [isSavingDemographics, setIsSavingDemographics] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const saveDemographics = async () => {
+    setIsSavingDemographics(true);
+    try {
+      const res = await fetch(`/api/measurements/${measurement.tracking_id}/demographics`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ age: age ? Number(age) : null, gender: gender || null }),
+      });
+      if (!res.ok) {
+        throw new Error("Failed to save demographics");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSavingDemographics(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm("Are you sure you want to delete this data?")) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/measurements/${measurement.tracking_id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Gagal menghapus data");
+      router.push("/verifikasi");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal menghapus data");
+      setIsDeleting(false);
+    }
+  };
 
   const { register, handleSubmit } = useForm<VerifyFormData>({
     resolver: zodResolver(verifySchema),
@@ -153,13 +194,37 @@ export function VerifyForm({ measurement }: VerifyFormProps) {
               Patient Demographics
             </h3>
             <div className="grid grid-cols-1 gap-y-3 text-sm text-foreground">
-              <div className="flex justify-between border-b border-border pb-2">
+              <div className="flex justify-between border-b border-border pb-2 items-center">
                 <span className="text-muted-foreground">Age</span>
-                <span className="font-semibold">54</span>
+                {role === 'admin' ? (
+                  <div className="flex gap-2">
+                    <input 
+                      type="number" 
+                      className="w-16 rounded border bg-transparent px-1 text-right text-sm" 
+                      value={age} 
+                      onChange={(e) => setAge(e.target.value)} 
+                    />
+                    <Button variant="outline" size="sm" onClick={saveDemographics} disabled={isSavingDemographics}>Save</Button>
+                  </div>
+                ) : (
+                  <span className="font-semibold">{measurement.age !== null ? measurement.age : 'Unknown'}</span>
+                )}
               </div>
-              <div className="flex justify-between border-b border-border pb-2">
+              <div className="flex justify-between border-b border-border pb-2 items-center">
                 <span className="text-muted-foreground">Gender</span>
-                <span className="font-semibold">Male</span>
+                {role === 'admin' ? (
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      className="w-24 rounded border bg-transparent px-1 text-right text-sm" 
+                      value={gender} 
+                      onChange={(e) => setGender(e.target.value)} 
+                    />
+                    <Button variant="outline" size="sm" onClick={saveDemographics} disabled={isSavingDemographics}>Save</Button>
+                  </div>
+                ) : (
+                  <span className="font-semibold">{measurement.gender || 'Unknown'}</span>
+                )}
               </div>
               <div className="flex justify-between pb-1">
                 <span className="text-muted-foreground">Last Visit</span>
@@ -308,6 +373,18 @@ export function VerifyForm({ measurement }: VerifyFormProps) {
       <div className="text-center text-[10px] text-muted-foreground pt-6">
         OSCAR Clinical Review v1.0 | © 2026 PKM KC Unhas
       </div>
+
+      {role === 'admin' && (measurement.status === 'verified' || measurement.status === 'rejected') && (
+        <div className="mt-8 pt-4 border-t border-red-500/20 flex justify-center">
+          <Button 
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white"
+          >
+            Hapus Data
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

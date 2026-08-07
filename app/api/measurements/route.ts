@@ -14,16 +14,16 @@ import { generateTrackingId } from '@/lib/utils';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { mirna31, lactate_uM, il8_pg_mg, lat, lng } = MeasurementSchema.parse(body);
+    const { mirna31, lactate_uM, il8_pg_mg, lat, lng, ai_pred_class, ai_probability } = MeasurementSchema.parse(body);
 
     const trackingId = generateTrackingId();
     const pool = getPool();
 
     await pool.execute(
       `INSERT INTO Measurements 
-       (tracking_id, mirna31, lactate_uM, il8_pg_mg, status, lat_obfuscated, lng_obfuscated) 
-       VALUES (?, ?, ?, ?, 'raw', ?, ?)`,
-      [trackingId, mirna31, lactate_uM, il8_pg_mg, lat || null, lng || null]
+       (tracking_id, mirna31, lactate_uM, il8_pg_mg, status, lat_obfuscated, lng_obfuscated, ai_pred_class, ai_probability) 
+       VALUES (?, ?, ?, ?, 'raw', ?, ?, ?, ?)`,
+      [trackingId, mirna31, lactate_uM, il8_pg_mg, lat || null, lng || null, ai_pred_class || null, ai_probability || null]
     );
 
     return NextResponse.json(
@@ -53,11 +53,11 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    let query = 'SELECT * FROM Measurements';
+    let query = 'SELECT * FROM Measurements WHERE deleted_at IS NULL';
     const params: any[] = [];
 
     if (status !== 'all') {
-      query += ' WHERE status = ?';
+      query += ' AND status = ?';
       params.push(status);
     }
 
@@ -68,9 +68,9 @@ export async function GET(req: NextRequest) {
     const [rows] = await pool.query(query, params);
 
     // Hitung total untuk pagination
-    let countQuery = 'SELECT COUNT(*) as total FROM Measurements';
+    let countQuery = 'SELECT COUNT(*) as total FROM Measurements WHERE deleted_at IS NULL';
     if (status !== 'all') {
-      countQuery += ' WHERE status = ?';
+      countQuery += ' AND status = ?';
     }
     const [countResult] = await pool.query(countQuery, status !== 'all' ? [status] : []);
     const total = (countResult as any[])[0]?.total || 0;
