@@ -1,7 +1,7 @@
 // app/verify/[id]/page.tsx
 import { getPool } from '@/lib/db';
 import { VerifyForm } from '@/components/forms/VerifyForm';
-import { getCurrentUser } from '@/lib/auth-server';
+import { getCurrentUser, requireAuth } from '@/lib/auth-server';
 
 interface VerifyPageProps {
   params: {
@@ -10,6 +10,7 @@ interface VerifyPageProps {
 }
 
 export default async function VerifyPage({ params }: VerifyPageProps) {
+  requireAuth();
   const { id } = await params;
   let measurement: any = null;
   const user = getCurrentUser();

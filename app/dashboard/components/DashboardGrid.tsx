@@ -25,6 +25,12 @@ interface DashboardGridProps {
     uptime?: string;
   };
   biomarkerData?: BiomarkerItem[];
+  latestInfo?: {
+    probability?: number;
+    predClass?: string;
+    trackingId?: string;
+    createdAt?: string;
+  };
   chartData?: Array<{ timestamp: string; probability: number; status?: number }>;
   historyData?: HistoryItem[];
   mapLocations?: Array<{ lat: number; lng: number; intensity?: number; label?: string }>;
@@ -38,6 +44,7 @@ interface DashboardGridProps {
 export function DashboardGrid({
   statusData,
   biomarkerData,
+  latestInfo,
   chartData,
   historyData = [],
   mapLocations = [],
@@ -55,10 +62,13 @@ export function DashboardGrid({
 
   return (
     <div className="space-y-6">
-      {/* Status Card */}
+      {/* 1. Data Biomarker Terbaru + Probabilitas OSCC (Paling Atas) */}
+      <BiomarkerCards data={biomarkerData} latestInfo={latestInfo} />
+
+      {/* 2. Status Card */}
       {statusData && <StatusCard {...statusData} />}
 
-      {/* 3 Stat Cards */}
+      {/* 3. Stat Cards Summary */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {/* Card 1: Live */}
         <Card className="glass-card border-cyan-300/40 dark:border-cyan-500/30 p-6 flex flex-col justify-between h-44">
@@ -121,7 +131,7 @@ export function DashboardGrid({
         </Card>
       </div>
 
-      {/* Perlu verifikasi */}
+      {/* 4. Perlu verifikasi */}
       <Card className="glass-card border-amber-300/40 dark:border-amber-500/30 p-6">
         <h3 className="text-md font-semibold text-foreground mb-4">Perlu verifikasi dokter</h3>
         <div className="divide-y divide-border">
@@ -146,20 +156,17 @@ export function DashboardGrid({
         </div>
       </Card>
 
-      {/* Trend Chart */}
-      <TrendChart data={chartData} />
-
-      {/* Biomarker + Map */}
+      {/* 5. Trend Chart & Map View */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="lg:col-span-8">
-          <BiomarkerCards data={biomarkerData} />
+          <TrendChart data={chartData} />
         </div>
         <div className="lg:col-span-4">
           <MapView locations={mapLocations} />
         </div>
       </div>
 
-      {/* History Table */}
+      {/* 6. History Table */}
       <HistoryTable data={historyData} />
 
       {/* Footer */}

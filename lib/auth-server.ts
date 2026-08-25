@@ -18,6 +18,14 @@ export function requireAuth(): TokenPayload {
   return decoded;
 }
 
+export function requireAdmin(): TokenPayload {
+  const user = requireAuth();
+  if (user.role !== 'admin') {
+    redirect('/dashboard');
+  }
+  return user;
+}
+
 export function getCurrentUser(): TokenPayload | null {
   const cookieStore = cookies();
   const token = cookieStore.get('token')?.value;
@@ -28,3 +36,4 @@ export function getCurrentUser(): TokenPayload | null {
 
   return verifyToken(token);
 }
+

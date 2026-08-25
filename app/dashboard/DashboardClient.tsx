@@ -69,13 +69,16 @@ export default function DashboardClient() {
   }
 
   // ── Parse data dari API ──
+  // Note: /api/measurements returns `SELECT * FROM Measurements WHERE deleted_at IS NULL ORDER BY created_at DESC`
+  // Therefore, measurements[0] is the LATEST incoming measurement!
   const measurements = Array.isArray(data.data) ? data.data : [];
   const total = measurements.length;
   const osccCount = measurements.filter((m: any) => m.ai_pred_class === 'OSCC').length;
 
-  // Chart data (10 terakhir)
+  // Chart data (10 terakhir - diurutkan kronologis dari kiri ke kanan)
   const chartData = measurements
-    .slice(-10)
+    .slice(0, 10)
+    .reverse()
     .map((m: any) => ({
       timestamp: m.created_at
         ? new Date(m.created_at).toLocaleTimeString('id-ID', {
@@ -106,8 +109,8 @@ export default function DashboardClient() {
     };
   });
 
-  // Biomarker terbaru
-  const latest = measurements.length > 0 ? measurements[measurements.length - 1] : null;
+  // Data Biomarker & OSCC Probability terbaru (KHUSUS data terakhir yang masuk, yaitu measurements[0])
+  const latest = measurements.length > 0 ? measurements[0] : null;
   const biomarkerData = latest
     ? [
         {
@@ -133,6 +136,19 @@ export default function DashboardClient() {
       ]
     : [];
 
+  const latestProb = latest && latest.ai_probability !== null && latest.ai_probability !== undefined
+    ? parseFloat(latest.ai_probability)
+    : undefined;
+
+  const latestInfo = {
+    probability: latestProb,
+    predClass: latest?.ai_pred_class || undefined,
+    trackingId: latest?.tracking_id || undefined,
+    createdAt: latest?.created_at
+      ? new Date(latest.created_at).toLocaleString('id-ID')
+      : undefined,
+  };
+
   // Lokasi (jika ada)
   const locations = measurements
     .filter((m: any) => m.lat_obfuscated && m.lng_obfuscated)
@@ -154,9 +170,6 @@ export default function DashboardClient() {
       created_at: m.created_at,
     }));
 
-  // Probability terbaru
-  const latestProb = latest ? parseFloat(latest.ai_probability) || 0 : 0;
-
   // ── Render DashboardGrid ──
   return (
     <DashboardGrid
@@ -166,6 +179,7 @@ export default function DashboardClient() {
         probability: latestProb,
       }}
       biomarkerData={biomarkerData}
+      latestInfo={latestInfo}
       chartData={chartData}
       historyData={historyData}
       mapLocations={locations.length > 0 ? locations : undefined}

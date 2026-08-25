@@ -1,7 +1,7 @@
 // app/dashboard/components/BiomarkerCards.tsx
 'use client';
 
-import { Dna, Droplets, Zap, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Dna, Droplets, Zap, TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { BIOMARKER_LIMITS } from '@/lib/constants';
 
@@ -16,6 +16,12 @@ export interface BiomarkerItem {
 interface BiomarkerCardsProps {
   data?: BiomarkerItem[];
   onEdit?: (index: number) => void;
+  latestInfo?: {
+    probability?: number;
+    predClass?: string;
+    trackingId?: string;
+    createdAt?: string;
+  };
 }
 
 const BIOMARKER_CONFIG: Record<string, {
@@ -121,20 +127,60 @@ const DEFAULT_DATA: BiomarkerItem[] = [
   { title: 'IL-8',        value: '--', unit: 'pg/mg', color: 'green' },
 ];
 
-export function BiomarkerCards({ data, onEdit }: BiomarkerCardsProps) {
+export function BiomarkerCards({ data, onEdit, latestInfo }: BiomarkerCardsProps) {
   const items = data ?? DEFAULT_DATA;
 
   return (
     <Card className="glass-card">
-      <CardHeader className="pb-2">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-900/30">
-            <Dna size={14} className="text-purple-600 dark:text-purple-400" strokeWidth={1.75} />
+      <CardHeader className="pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30">
+              <Dna size={16} className="text-purple-600 dark:text-purple-400" strokeWidth={1.75} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-base font-semibold">Data Biomarker</CardTitle>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold border border-blue-200 dark:border-blue-800">
+                  Data Terakhir Masuk
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {latestInfo?.trackingId ? `ID: ${latestInfo.trackingId} • ${latestInfo.createdAt || ''}` : 'Hasil sensor multi-omics data terbaru'}
+              </p>
+            </div>
           </div>
-          <div>
-            <CardTitle className="text-sm font-semibold">Data Biomarker</CardTitle>
-            <p className="text-[10px] text-muted-foreground">Hasil sensor multi-omics</p>
-          </div>
+
+          {latestInfo?.probability !== undefined && (
+            <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shrink-0">
+              <Activity size={15} className="text-blue-500 animate-pulse" />
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
+                  Probabilitas OSCC (Data Terakhir)
+                </p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className={`text-lg font-extrabold tabular-nums ${
+                    latestInfo.probability >= 70
+                      ? 'text-red-600 dark:text-red-400'
+                      : latestInfo.probability >= 40
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-emerald-600 dark:text-emerald-400'
+                  }`}>
+                    {latestInfo.probability.toFixed(1)}%
+                  </span>
+                  {latestInfo.predClass && (
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                      latestInfo.predClass === 'OSCC'
+                        ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400 border border-red-200 dark:border-red-500/30'
+                        : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30'
+                    }`}>
+                      {latestInfo.predClass}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </CardHeader>
       <CardContent>
