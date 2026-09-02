@@ -134,7 +134,7 @@ export function VerifyForm({ measurement, role }: VerifyFormProps) {
   const isIl8High = il8 > 50;
 
   const biomarkers = [
-    { name: "IL-8", val: il8, unit: "pg/mg", status: isIl8High ? "High" : "Normal", isHigh: isIl8High },
+    { name: "IL-8", val: il8, unit: "pg/mL", status: isIl8High ? "High" : "Normal", isHigh: isIl8High },
     { name: "miRNA-31", val: mirna, unit: "RQ", status: isMirnaHigh ? "High" : "Normal", isHigh: isMirnaHigh },
     { name: "Asam Laktat", val: lactate / 1000, unit: "mM", status: isLactateHigh ? "High" : "Normal", isHigh: isLactateHigh },
   ];

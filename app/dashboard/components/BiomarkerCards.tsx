@@ -49,7 +49,7 @@ const BIOMARKER_CONFIG: Record<string, {
     icon: Zap,
     min: BIOMARKER_LIMITS.IL8_MIN,
     max: BIOMARKER_LIMITS.IL8_MAX,
-    normalRange: '< 50 pg/mg',
+    normalRange: '< 50 pg/mL',
     description: 'Interleukin-8 (biomarker inflamasi)',
   },
 };
@@ -124,7 +124,7 @@ function BiomarkerCard({ title, value, unit, color = 'blue', onEdit }: Biomarker
 const DEFAULT_DATA: BiomarkerItem[] = [
   { title: 'miRNA-31',    value: '--', unit: 'RQ',    color: 'blue' },
   { title: 'Asam Laktat', value: '--', unit: 'mM',    color: 'orange' },
-  { title: 'IL-8',        value: '--', unit: 'pg/mg', color: 'green' },
+  { title: 'IL-8',        value: '--', unit: 'pg/mL', color: 'green' },
 ];
 
 export function BiomarkerCards({ data, onEdit, latestInfo }: BiomarkerCardsProps) {

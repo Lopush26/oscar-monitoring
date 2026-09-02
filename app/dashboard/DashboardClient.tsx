@@ -130,7 +130,7 @@ export default function DashboardClient() {
         {
           title: 'IL-8',
           value: latest.il8_pg_mg ?? '--',
-          unit: 'pg/mg',
+          unit: 'pg/mL',
           color: 'green' as const,
         },
       ]

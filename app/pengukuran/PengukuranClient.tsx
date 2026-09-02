@@ -75,7 +75,7 @@ export default function PengukuranClient() {
                   <th className="text-left py-2 text-muted-foreground font-semibold">Tracking ID</th>
                   <th className="text-left py-2 text-muted-foreground font-semibold">miRNA-31</th>
                   <th className="text-left py-2 text-muted-foreground font-semibold">Laktat (μM)</th>
-                  <th className="text-left py-2 text-muted-foreground font-semibold">IL-8 (pg/mg)</th>
+                  <th className="text-left py-2 text-muted-foreground font-semibold">IL-8 (pg/mL)</th>
                   <th className="text-left py-2 text-muted-foreground font-semibold">Status</th>
                   <th className="text-left py-2 text-muted-foreground font-semibold">Prob.</th>
                   <th className="text-right py-2 text-muted-foreground font-semibold">Action</th>
