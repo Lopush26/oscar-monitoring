@@ -49,53 +49,61 @@ export default function HeaderNav() {
             </span>
           </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`transition-colors duration-200 hover:text-foreground ${
-                  isActive(item.href)
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-muted-foreground'
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+          {/* Desktop Nav - Only show if not on /login */}
+          {pathname !== '/login' && (
+            <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`transition-colors duration-200 hover:text-foreground ${
+                    isActive(item.href)
+                      ? 'text-blue-600 dark:text-blue-400'
+                      : 'text-muted-foreground'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          )}
 
           {/* Profile & Actions */}
           <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-muted-foreground sm:block">Dokter / Admin</span>
-            
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm">
-              DA
-            </div>
+            {pathname !== '/login' ? (
+              <>
+                <span className="hidden text-sm text-muted-foreground sm:block">Dokter / Admin</span>
+                
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm">
+                  DA
+                </div>
 
-            <ThemeToggle />
+                <ThemeToggle />
 
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all duration-200"
-              title="Logout"
-            >
-              <LogOut size={16} />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all duration-200"
+                  title="Logout"
+                >
+                  <LogOut size={16} />
+                  <span className="hidden sm:inline">Logout</span>
+                </button>
 
-            <button
-              className="md:hidden text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => setMobileOpen(!mobileOpen)}
-            >
-              <Menu size={24} />
-            </button>
+                <button
+                  className="md:hidden text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => setMobileOpen(!mobileOpen)}
+                >
+                  <Menu size={24} />
+                </button>
+              </>
+            ) : (
+              <ThemeToggle />
+            )}
           </div>
         </div>
 
         {/* Mobile Nav */}
-        {mobileOpen && (
+        {mobileOpen && pathname !== '/login' && (
           <nav className="md:hidden py-4 border-t border-border flex flex-col gap-3">
             {navItems.map((item) => (
               <Link

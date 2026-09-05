@@ -45,9 +45,6 @@ export default function LoginPage() {
             <Activity className="w-6 h-6 text-blue-600 dark:text-blue-400" />
           </div>
           <CardTitle className="text-2xl text-center font-bold text-foreground">Login OSCAR</CardTitle>
-          <p className="text-muted-foreground text-sm text-center">
-            Masukkan kredensial untuk mengakses dashboard
-          </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4 mt-6">
