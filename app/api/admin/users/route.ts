@@ -21,7 +21,7 @@ export const GET = withAuth(async (req: AuthenticatedRequest) => {
 
   const pool = getPool();
   const [rows] = await pool.query('SELECT id, username, role, created_at FROM Users ORDER BY id DESC');
-  return NextResponse.json(rows);
+  return NextResponse.json({ success: true, data: rows });
 });
 
 // POST /api/admin/users
