@@ -42,6 +42,9 @@ interface VerifyFormProps {
     created_at: string;
     age: number | null;
     gender: string | null;
+    notes?: string | null;
+    lat_obfuscated?: number | string | null;
+    lng_obfuscated?: number | string | null;
   };
   role?: string;
 }
@@ -55,20 +58,31 @@ export function VerifyForm({ measurement, role }: VerifyFormProps) {
 
   const [age, setAge] = useState<string>(measurement.age?.toString() || "");
   const [gender, setGender] = useState<string>(measurement.gender || "");
+  const [locationName, setLocationName] = useState<string>((measurement as any).location_name || "");
   const [isSavingDemographics, setIsSavingDemographics] = useState(false);
+  const [demographicsSaved, setDemographicsSaved] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const saveDemographics = async () => {
     setIsSavingDemographics(true);
+    setDemographicsSaved(false);
     try {
       const res = await fetch(`/api/measurements/${measurement.tracking_id}/demographics`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ age: age ? Number(age) : null, gender: gender || null }),
+        credentials: "include",
+        body: JSON.stringify({
+          age: age ? Number(age) : null,
+          gender: gender || null,
+          location_name: locationName || null,
+        }),
       });
       if (!res.ok) {
-        throw new Error("Failed to save demographics");
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Gagal menyimpan data");
       }
+      setDemographicsSaved(true);
+      setTimeout(() => setDemographicsSaved(false), 2500);
     } catch (err) {
       console.error(err);
     } finally {
@@ -93,7 +107,7 @@ export function VerifyForm({ measurement, role }: VerifyFormProps) {
 
   const { register, handleSubmit } = useForm<VerifyFormData>({
     resolver: zodResolver(verifySchema),
-    defaultValues: { notes: "" },
+    defaultValues: { notes: measurement.notes || "" },
   });
 
   const onSubmitStatus = async (status: 'verified' | 'rejected', data: VerifyFormData) => {
@@ -174,9 +188,22 @@ export function VerifyForm({ measurement, role }: VerifyFormProps) {
             <h1 className="text-xl font-bold tracking-tight text-foreground">
               Patient ID: {measurement.patient_id || measurement.tracking_id}
             </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Status: <span className="text-amber-600 dark:text-amber-400 font-semibold uppercase">Require Verification</span>
-            </p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-xs text-muted-foreground">Status:</span>
+              {measurement.status === 'verified' ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 text-xs font-semibold uppercase tracking-wider">
+                  <Check size={12} /> Terverifikasi
+                </span>
+              ) : measurement.status === 'rejected' ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400 border border-red-200 dark:border-red-500/30 text-xs font-semibold uppercase tracking-wider">
+                  <ShieldAlert size={12} /> Ditolak
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30 text-xs font-semibold uppercase tracking-wider">
+                  Require Verification
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -190,46 +217,71 @@ export function VerifyForm({ measurement, role }: VerifyFormProps) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="space-y-6 lg:col-span-5">
           <Card className="glass-card p-6">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-              Patient Demographics
-            </h3>
-            <div className="grid grid-cols-1 gap-y-3 text-sm text-foreground">
-              <div className="flex justify-between border-b border-border pb-2 items-center">
-                <span className="text-muted-foreground">Age</span>
-                {role === 'admin' ? (
-                  <div className="flex gap-2">
-                    <input 
-                      type="number" 
-                      className="w-16 rounded border bg-transparent px-1 text-right text-sm" 
-                      value={age} 
-                      onChange={(e) => setAge(e.target.value)} 
-                    />
-                    <Button variant="outline" size="sm" onClick={saveDemographics} disabled={isSavingDemographics}>Save</Button>
-                  </div>
-                ) : (
-                  <span className="font-semibold">{measurement.age !== null ? measurement.age : 'Unknown'}</span>
-                )}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Patient Demographics
+              </h3>
+              {demographicsSaved && (
+                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold animate-pulse">
+                  ✓ Tersimpan
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-1 gap-y-4 text-sm text-foreground">
+              {/* Age */}
+              <div className="flex justify-between items-center border-b border-border pb-3">
+                <span className="text-muted-foreground shrink-0">Usia</span>
+                <input
+                  type="number"
+                  className="w-24 rounded-lg border border-border bg-slate-50 dark:bg-slate-900/60 px-2 py-1.5 text-right text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  placeholder="(tahun)"
+                />
               </div>
-              <div className="flex justify-between border-b border-border pb-2 items-center">
-                <span className="text-muted-foreground">Gender</span>
-                {role === 'admin' ? (
-                  <div className="flex gap-2">
-                    <input 
-                      type="text" 
-                      className="w-24 rounded border bg-transparent px-1 text-right text-sm" 
-                      value={gender} 
-                      onChange={(e) => setGender(e.target.value)} 
-                    />
-                    <Button variant="outline" size="sm" onClick={saveDemographics} disabled={isSavingDemographics}>Save</Button>
-                  </div>
-                ) : (
-                  <span className="font-semibold">{measurement.gender || 'Unknown'}</span>
-                )}
+
+              {/* Gender */}
+              <div className="flex justify-between items-center border-b border-border pb-3">
+                <span className="text-muted-foreground shrink-0">Gender</span>
+                <select
+                  className="w-32 rounded-lg border border-border bg-slate-50 dark:bg-slate-900/60 px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                >
+                  <option value="">Pilih...</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
+
+              {/* Location */}
+              <div className="flex justify-between items-center border-b border-border pb-3 gap-3">
+                <span className="text-muted-foreground shrink-0">Lokasi</span>
+                <input
+                  type="text"
+                  className="w-44 rounded-lg border border-border bg-slate-50 dark:bg-slate-900/60 px-2 py-1.5 text-right text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+                  value={locationName}
+                  onChange={(e) => setLocationName(e.target.value)}
+                  placeholder="Nama lokasi/wilayah"
+                />
+              </div>
+
+              {/* Last Visit */}
               <div className="flex justify-between pb-1">
                 <span className="text-muted-foreground">Last Visit</span>
                 <span className="font-semibold">{formattedDate}</span>
               </div>
+
+              {/* Save button — all roles */}
+              <Button
+                type="button"
+                onClick={saveDemographics}
+                disabled={isSavingDemographics}
+                className="w-full mt-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg h-9 transition-all disabled:opacity-50"
+              >
+                {isSavingDemographics ? 'Menyimpan...' : 'Simpan Data Pasien'}
+              </Button>
             </div>
           </Card>
 

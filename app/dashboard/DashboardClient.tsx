@@ -16,8 +16,6 @@ export default function DashboardClient() {
           credentials: 'include',
         });
 
-        console.log('📡 Response status:', res.status);
-
         if (!res.ok) {
           console.error('❌ API error:', res.status);
           setError(`Gagal memuat data (HTTP ${res.status})`);
@@ -44,7 +42,7 @@ export default function DashboardClient() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-muted-foreground text-sm">Memuat dashboard...</p>
         </div>
       </div>
@@ -69,13 +67,11 @@ export default function DashboardClient() {
   }
 
   // ── Parse data dari API ──
-  // Note: /api/measurements returns `SELECT * FROM Measurements WHERE deleted_at IS NULL ORDER BY created_at DESC`
-  // Therefore, measurements[0] is the LATEST incoming measurement!
   const measurements = Array.isArray(data.data) ? data.data : [];
   const total = measurements.length;
   const osccCount = measurements.filter((m: any) => m.ai_pred_class === 'OSCC').length;
 
-  // Chart data (10 terakhir - diurutkan kronologis dari kiri ke kanan)
+  // Chart data (10 terakhir - diurutkan kronologis)
   const chartData = measurements
     .slice(0, 10)
     .reverse()
@@ -109,7 +105,7 @@ export default function DashboardClient() {
     };
   });
 
-  // Data Biomarker & OSCC Probability terbaru (KHUSUS data terakhir yang masuk, yaitu measurements[0])
+  // Data Biomarker & OSCC Probability terbaru
   const latest = measurements.length > 0 ? measurements[0] : null;
   const biomarkerData = latest
     ? [
@@ -149,15 +145,34 @@ export default function DashboardClient() {
       : undefined,
   };
 
-  // Lokasi (jika ada)
-  const locations = measurements
-    .filter((m: any) => m.lat_obfuscated && m.lng_obfuscated)
-    .map((m: any) => ({
-      lat: parseFloat(m.lat_obfuscated),
-      lng: parseFloat(m.lng_obfuscated),
-      intensity: parseFloat(m.ai_probability) / 100 || 0.5,
-      label: m.tracking_id || 'Lokasi',
-    }));
+  // Lokasi Sebaran Kasus (Makassar & sekitarnya)
+  const demoCoords = [
+    { lat: -5.1332, lng: 119.4883, area: 'RSUP Dr. Wahidin / Tamalanrea' },
+    { lat: -5.1477, lng: 119.4327, area: 'Pusat Kota Makassar' },
+    { lat: -5.1764, lng: 119.4421, area: 'Panakkukang' },
+    { lat: -5.0061, lng: 119.5746, area: 'Maros' },
+    { lat: -5.2044, lng: 119.4542, area: 'Sungguminasa, Gowa' },
+    { lat: -5.1215, lng: 119.4812, area: 'UNHAS Tamalanrea' },
+  ];
+
+  const locations = measurements.map((m: any, idx: number) => {
+    const defaultCoord = demoCoords[idx % demoCoords.length];
+    const lat = m.lat_obfuscated ? parseFloat(m.lat_obfuscated) : defaultCoord.lat;
+    const lng = m.lng_obfuscated ? parseFloat(m.lng_obfuscated) : defaultCoord.lng;
+    return {
+      trackingId: m.tracking_id,
+      patientId: m.patient_id || m.tracking_id,
+      lat,
+      lng,
+      area: defaultCoord.area,
+      probability: parseFloat(m.ai_probability) || 0,
+      predClass: m.ai_pred_class || 'N/A',
+      status: m.status,
+      mirna31: m.mirna31,
+      lactate: m.lactate_uM ? (m.lactate_uM / 1000).toFixed(2) : '--',
+      il8: m.il8_pg_mg,
+    };
+  });
 
   // Pending cases
   const pendingCases = measurements
@@ -170,7 +185,6 @@ export default function DashboardClient() {
       created_at: m.created_at,
     }));
 
-  // ── Render DashboardGrid ──
   return (
     <DashboardGrid
       statusData={{
@@ -182,7 +196,7 @@ export default function DashboardClient() {
       latestInfo={latestInfo}
       chartData={chartData}
       historyData={historyData}
-      mapLocations={locations.length > 0 ? locations : undefined}
+      mapLocations={locations}
       stats={{ total, osccCount }}
       pendingCases={pendingCases}
     />

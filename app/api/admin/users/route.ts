@@ -15,33 +15,46 @@ const CreateUserSchema = z.object({
 
 // GET /api/admin/users
 export const GET = withAuth(async (req: AuthenticatedRequest) => {
-  if (req.user.role !== 'admin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
+  try {
+    if (req.user?.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
-  const pool = getPool();
-  const [rows] = await pool.query('SELECT id, username, role, created_at FROM Users ORDER BY id DESC');
-  return NextResponse.json({ success: true, data: rows });
+    const pool = getPool();
+    const [rows] = await pool.query('SELECT id, username, role, created_at FROM Users ORDER BY id DESC');
+    return NextResponse.json({ success: true, data: rows });
+  } catch (error: any) {
+    console.error('GET /api/admin/users error:', error);
+    return NextResponse.json({ error: error.message || 'Database query error' }, { status: 500 });
+  }
 });
 
 // POST /api/admin/users
 export const POST = withAuth(async (req: AuthenticatedRequest) => {
-  if (req.user.role !== 'admin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  try {
+    if (req.user?.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const body = await req.json();
+    const { username, password, role } = CreateUserSchema.parse(body);
+
+    const hashed = await hashPassword(password);
+    const pool = getPool();
+    const [result] = await pool.query(
+      'INSERT INTO Users (username, password_hash, role) VALUES (?, ?, ?)',
+      [username, hashed, role]
+    );
+
+    return NextResponse.json({
+      success: true,
+      user: { id: (result as any).insertId, username, role },
+    }, { status: 201 });
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.errors.map(e => e.message).join(', ') }, { status: 400 });
+    }
+    console.error('POST /api/admin/users error:', error);
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
-
-  const body = await req.json();
-  const { username, password, role } = CreateUserSchema.parse(body);
-
-  const hashed = await hashPassword(password);
-  const pool = getPool();
-  const [result] = await pool.query(
-    'INSERT INTO Users (username, password_hash, role) VALUES (?, ?, ?)',
-    [username, hashed, role]
-  );
-
-  return NextResponse.json({
-    success: true,
-    user: { id: (result as any).insertId, username, role },
-  }, { status: 201 });
 });

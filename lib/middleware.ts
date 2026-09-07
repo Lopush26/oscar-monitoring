@@ -25,7 +25,7 @@ export function withAuth(handler: any) {
       );
     }
 
-    // Teruskan user ke handler
-    return handler(req, user, ...args);
+    (req as any).user = user;
+    return handler(req, ...args);
   };
 }

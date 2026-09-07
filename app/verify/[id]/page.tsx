@@ -31,7 +31,8 @@ export default async function VerifyPage({ params }: VerifyPageProps) {
         patient_id,
         created_at,
         age,
-        gender
+        gender,
+        notes
        FROM Measurements 
        WHERE tracking_id = ? OR id = ?`,
       [id, isNaN(Number(id)) ? null : Number(id)]
