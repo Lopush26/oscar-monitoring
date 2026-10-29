@@ -29,7 +29,7 @@ interface TrendChartProps {
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="glass-card rounded-lg px-3 py-2 text-xs shadow-xl border border-border/50 bg-background/95">
+    <div className="card rounded-xl px-3 py-2 text-xs shadow-elegant border border-border/60 bg-card">
       <p className="font-semibold text-foreground mb-1">⏱ {label}</p>
       {payload.map((p: any) => (
         <p key={p.dataKey} style={{ color: p.color }} className="font-medium">
@@ -48,15 +48,15 @@ export function TrendChart({ data = [] }: TrendChartProps) {
   const prev = hasData && data.length > 1 ? data[data.length - 2].probability : null;
   const delta = latest !== null && prev !== null ? (latest - prev).toFixed(1) : null;
 
-  const gridColor = isDark ? '#1e293b' : '#e2e8f0';
-  const tickColor = isDark ? '#94a3b8' : '#64748b';
+  const gridColor = isDark ? '#334155' : '#E2E8F0';
+  const tickColor = isDark ? '#94A3B8' : '#64748B';
 
   return (
-    <Card className="glass-card">
+    <Card className="card-hover" variant="hover" accent="blue">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+            <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800/30">
               <BarChart3 size={14} className="text-blue-600 dark:text-blue-400" strokeWidth={1.75} />
             </div>
             <div>
@@ -71,7 +71,7 @@ export function TrendChart({ data = [] }: TrendChartProps) {
               </span>
             )}
             {delta !== null && (
-              <span className={`flex items-center gap-0.5 text-xs font-medium ${Number(delta) >= 0 ? 'text-red-500 dark:text-red-400' : 'text-emerald-500 dark:text-emerald-400'}`}>
+              <span className={`flex items-center gap-1 text-xs font-medium ${Number(delta) >= 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                 <TrendingUp size={12} className={Number(delta) < 0 ? 'rotate-180' : ''} />
                 {delta}
               </span>
@@ -82,7 +82,7 @@ export function TrendChart({ data = [] }: TrendChartProps) {
       </CardHeader>
       <CardContent>
         {!hasData ? (
-          <div className="flex flex-col items-center justify-center h-48 gap-3 rounded-xl bg-slate-50 dark:bg-slate-800/30 border border-dashed border-border">
+          <div className="flex flex-col items-center justify-center h-48 gap-3 rounded-xl bg-muted/50 border border-dashed border-border">
             <BarChart3 size={28} className="text-muted-foreground/40" strokeWidth={1.25} />
             <p className="text-sm text-muted-foreground">Belum ada data pengukuran</p>
           </div>
@@ -90,7 +90,7 @@ export function TrendChart({ data = [] }: TrendChartProps) {
           <div className="h-56 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} opacity={0.4} />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} opacity={0.35} />
                 <XAxis
                   dataKey="timestamp"
                   tick={{ fontSize: 10, fill: tickColor }}
@@ -106,17 +106,17 @@ export function TrendChart({ data = [] }: TrendChartProps) {
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
-                <ReferenceLine y={70} stroke="#ef4444" strokeDasharray="4 2" strokeWidth={1.5}
-                  label={{ value: 'Risiko Tinggi', position: 'right', fontSize: 9, fill: '#ef4444' }} />
-                <ReferenceLine y={40} stroke="#f59e0b" strokeDasharray="4 2" strokeWidth={1.5}
-                  label={{ value: 'Risiko Sedang', position: 'right', fontSize: 9, fill: '#f59e0b' }} />
+                <ReferenceLine y={70} stroke="#EF4444" strokeDasharray="4 2" strokeWidth={1.5}
+                  label={{ value: 'Risiko Tinggi', position: 'right', fontSize: 9, fill: '#EF4444' }} />
+                <ReferenceLine y={40} stroke="#F59E0B" strokeDasharray="4 2" strokeWidth={1.5}
+                  label={{ value: 'Risiko Sedang', position: 'right', fontSize: 9, fill: '#F59E0B' }} />
                 <Line
                   type="monotone"
                   dataKey="probability"
-                  stroke="#3b82f6"
+                  stroke="#2563EB"
                   strokeWidth={2.5}
-                  dot={{ r: 2.5, fill: '#3b82f6', strokeWidth: 0 }}
-                  activeDot={{ r: 4.5, fill: '#3b82f6', strokeWidth: 2, stroke: isDark ? '#1e293b' : '#fff' }}
+                  dot={{ r: 3, fill: '#2563EB', strokeWidth: 0 }}
+                  activeDot={{ r: 5, fill: '#2563EB', strokeWidth: 2, stroke: isDark ? '#0A192F' : '#FFFFFF' }}
                   name="Probabilitas (%)"
                 />
               </LineChart>

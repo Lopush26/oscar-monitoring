@@ -42,7 +42,7 @@ export default function DashboardClient() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="spinner mx-auto mb-4" />
           <p className="text-muted-foreground text-sm">Memuat dashboard...</p>
         </div>
       </div>
@@ -55,7 +55,7 @@ export default function DashboardClient() {
       <div className="flex items-center justify-center min-h-[60vh] px-4">
         <div className="text-center">
           <div className="text-4xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-red-500 dark:text-red-400 mb-2">
+          <h2 className="text-xl font-semibold text-destructive mb-2">
             {error || 'Data tidak tersedia'}
           </h2>
           <p className="text-muted-foreground text-sm">
@@ -121,13 +121,13 @@ export default function DashboardClient() {
             ? (latest.lactate_uM / 1000).toFixed(2)
             : '--',
           unit: 'mM',
-          color: 'orange' as const,
+          color: 'amber' as const,
         },
         {
           title: 'IL-8',
           value: latest.il8_pg_mg ?? '--',
           unit: 'pg/mL',
-          color: 'green' as const,
+          color: 'emerald' as const,
         },
       ]
     : [];

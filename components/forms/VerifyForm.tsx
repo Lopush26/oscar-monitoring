@@ -8,7 +8,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
 import { ArrowLeft, Check, ShieldAlert, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import {
@@ -148,9 +149,9 @@ export function VerifyForm({ measurement, role }: VerifyFormProps) {
   const isIl8High = il8 > 50;
 
   const biomarkers = [
-    { name: "IL-8", val: il8, unit: "pg/mL", status: isIl8High ? "High" : "Normal", isHigh: isIl8High },
-    { name: "miRNA-31", val: mirna, unit: "RQ", status: isMirnaHigh ? "High" : "Normal", isHigh: isMirnaHigh },
-    { name: "Asam Laktat", val: lactate / 1000, unit: "mM", status: isLactateHigh ? "High" : "Normal", isHigh: isLactateHigh },
+    { name: "IL-8", val: il8, unit: "pg/mL", status: isIl8High ? "High" : "Normal", isHigh: isIl8High, accent: 'emerald' as const },
+    { name: "miRNA-31", val: mirna, unit: "RQ", status: isMirnaHigh ? "High" : "Normal", isHigh: isMirnaHigh, accent: 'blue' as const },
+    { name: "Asam Laktat", val: lactate / 1000, unit: "mM", status: isLactateHigh ? "High" : "Normal", isHigh: isLactateHigh, accent: 'amber' as const },
   ];
 
   const chartData = [
@@ -169,18 +170,18 @@ export function VerifyForm({ measurement, role }: VerifyFormProps) {
     year: "numeric",
   });
 
-  const gridColor = isDark ? '#1e293b' : '#e2e8f0';
-  const tickColor = isDark ? '#64748b' : '#94a3b8';
-  const tooltipBg = isDark ? '#0f172a' : '#ffffff';
-  const tooltipBorder = isDark ? '#1e293b' : '#e2e8f0';
+  const gridColor = isDark ? '#334155' : '#E2E8F0';
+  const tickColor = isDark ? '#94A3B8' : '#64748B';
+  const tooltipBg = isDark ? '#1E293B' : '#FFFFFF';
+  const tooltipBorder = isDark ? '#334155' : '#E2E8F0';
 
   return (
-    <div className="space-y-6">
+    <div className="section">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Link
             href="/verifikasi"
-            className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 text-foreground transition-colors duration-200"
+            className="btn-ghost w-10 h-10 rounded-xl p-0"
           >
             <ArrowLeft size={16} />
           </Link>
@@ -191,17 +192,11 @@ export function VerifyForm({ measurement, role }: VerifyFormProps) {
             <div className="flex items-center gap-2 mt-0.5">
               <span className="text-xs text-muted-foreground">Status:</span>
               {measurement.status === 'verified' ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 text-xs font-semibold uppercase tracking-wider">
-                  <Check size={12} /> Terverifikasi
-                </span>
+                <span className="badge badge-success"><Check size={12} className="mr-1" />Terverifikasi</span>
               ) : measurement.status === 'rejected' ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400 border border-red-200 dark:border-red-500/30 text-xs font-semibold uppercase tracking-wider">
-                  <ShieldAlert size={12} /> Ditolak
-                </span>
+                <span className="badge badge-danger"><ShieldAlert size={12} className="mr-1" />Ditolak</span>
               ) : (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30 text-xs font-semibold uppercase tracking-wider">
-                  Require Verification
-                </span>
+                <span className="badge badge-warning">Perlu Verifikasi</span>
               )}
             </div>
           </div>
@@ -209,229 +204,238 @@ export function VerifyForm({ measurement, role }: VerifyFormProps) {
       </div>
 
       {error && (
-        <div className="bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400 p-3 rounded-lg text-xs border border-red-200 dark:border-red-500/20 transition-colors duration-300">
+        <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs">
           {error}
         </div>
       )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="space-y-6 lg:col-span-5">
-          <Card className="glass-card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Patient Demographics
-              </h3>
-              {demographicsSaved && (
-                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold animate-pulse">
-                  ✓ Tersimpan
-                </span>
-              )}
-            </div>
-            <div className="grid grid-cols-1 gap-y-4 text-sm text-foreground">
-              {/* Age */}
-              <div className="flex justify-between items-center border-b border-border pb-3">
-                <span className="text-muted-foreground shrink-0">Usia</span>
-                <input
-                  type="number"
-                  className="w-24 rounded-lg border border-border bg-slate-50 dark:bg-slate-900/60 px-2 py-1.5 text-right text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  placeholder="(tahun)"
-                />
+          <Card className="card-hover" variant="hover" accent="blue">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-semibold">Data Demografis Pasien</CardTitle>
+                {demographicsSaved && (
+                  <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold animate-pulse">
+                    ✓ Tersimpan
+                  </span>
+                )}
               </div>
-
-              {/* Gender */}
-              <div className="flex justify-between items-center border-b border-border pb-3">
-                <span className="text-muted-foreground shrink-0">Gender</span>
-                <select
-                  className="w-32 rounded-lg border border-border bg-slate-50 dark:bg-slate-900/60 px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
-                  value={gender}
-                  onChange={(e) => setGender(e.target.value)}
-                >
-                  <option value="">Pilih...</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <Input
+                    label="Usia (tahun)"
+                    type="number"
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    placeholder="(tahun)"
+                    tabular
+                  />
+                </div>
+                <div>
+                  <label className="label">Gender</label>
+                  <select
+                    className="input"
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value)}
+                  >
+                    <option value="">Pilih...</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <Input
+                    label="Lokasi"
+                    value={locationName}
+                    onChange={(e) => setLocationName(e.target.value)}
+                    placeholder="Nama lokasi/wilayah"
+                  />
+                </div>
+                <div>
+                  <label className="label">Last Visit</label>
+                  <div className="input bg-muted/50 cursor-default">{formattedDate}</div>
+                </div>
               </div>
-
-              {/* Location */}
-              <div className="flex justify-between items-center border-b border-border pb-3 gap-3">
-                <span className="text-muted-foreground shrink-0">Lokasi</span>
-                <input
-                  type="text"
-                  className="w-44 rounded-lg border border-border bg-slate-50 dark:bg-slate-900/60 px-2 py-1.5 text-right text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
-                  value={locationName}
-                  onChange={(e) => setLocationName(e.target.value)}
-                  placeholder="Nama lokasi/wilayah"
-                />
-              </div>
-
-              {/* Last Visit */}
-              <div className="flex justify-between pb-1">
-                <span className="text-muted-foreground">Last Visit</span>
-                <span className="font-semibold">{formattedDate}</span>
-              </div>
-
-              {/* Save button — all roles */}
               <Button
                 type="button"
                 onClick={saveDemographics}
                 disabled={isSavingDemographics}
-                className="w-full mt-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg h-9 transition-all disabled:opacity-50"
+                className="w-full"
               >
                 {isSavingDemographics ? 'Menyimpan...' : 'Simpan Data Pasien'}
               </Button>
-            </div>
+            </CardContent>
           </Card>
 
-          <Card className="glass-card border-red-200 dark:border-red-500/30 p-6 relative overflow-hidden">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-              AI Diagnostic Summary
-            </h3>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-5xl font-extrabold tracking-tight text-red-600 dark:text-red-500 tabular-nums">
-                  {prob.toFixed(1)}%
-                </p>
-                <p className="text-xs text-muted-foreground mt-1 uppercase font-semibold tracking-wider">
-                  Risk Probability
-                </p>
-                <p className={`text-sm font-bold mt-2 ${isPositive ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                  {isPositive ? 'OSCC Positive' : 'Normal / Low Risk'}
-                </p>
+          <Card className="card-hover" variant="hover" accent="red">
+            <CardHeader>
+              <CardTitle className="text-sm font-semibold">Ringkasan Diagnostik AI</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-4xl font-bold tracking-tight text-red-600 dark:text-red-400 tabular-nums">
+                    {prob.toFixed(1)}%
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1 uppercase font-semibold tracking-wider">
+                    Probabilitas Risiko
+                  </p>
+                  <p className={`text-sm font-bold mt-2 ${isPositive ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                    {isPositive ? 'OSCC Positif' : 'Normal / Risiko Rendah'}
+                  </p>
+                </div>
+                <div className="opacity-80 shrink-0">
+                  <svg className="w-32 h-16 text-emerald-500" viewBox="0 0 100 40">
+                    <defs>
+                      <linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#10B981" stopOpacity="0.3" />
+                        <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    <path d="M0,35 Q20,33 40,28 T70,22 T90,5 L100,5 L100,40 L0,40 Z" fill="url(#grad)" />
+                    <path d="M0,35 Q20,33 40,28 T70,22 T90,5 L100,5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                  </svg>
+                </div>
               </div>
-              <div className="opacity-80 shrink-0">
-                <svg className="w-32 h-16 text-emerald-500 dark:text-emerald-400" viewBox="0 0 100 40">
-                  <defs>
-                    <linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
-                      <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M0,35 Q20,33 40,28 T70,22 T90,5 L100,5 L100,40 L0,40 Z" fill="url(#grad)" />
-                  <path d="M0,35 Q20,33 40,28 T70,22 T90,5 L100,5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                </svg>
-              </div>
-            </div>
+            </CardContent>
           </Card>
 
-          <Card className="glass-card p-6">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-              Verification Notes
-            </h3>
-            <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
-              <textarea
-                id="notes"
-                rows={4}
-                className="w-full rounded-lg border border-border bg-slate-50 dark:bg-slate-900/80 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-400 dark:focus-visible:ring-slate-700 transition-colors duration-300"
-                placeholder="Input comments here..."
-                {...register("notes")}
-              />
+          <Card className="card-hover" variant="hover" accent="violet">
+            <CardHeader>
+              <CardTitle className="text-sm font-semibold">Catatan Verifikasi</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
+                <textarea
+                  id="notes"
+                  rows={4}
+                  className="input resize-none"
+                  placeholder="Masukkan catatan verifikasi..."
+                  {...register("notes")}
+                />
 
-              <div className="grid grid-cols-2 gap-4 pt-2">
-                <Button
-                  variant="ghost"
-                  type="button"
-                  onClick={handleSubmit((data) => onSubmitStatus('rejected', data))}
-                  disabled={isLoading}
-                  className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-foreground border border-slate-200 dark:border-slate-700 rounded-lg h-11 text-sm font-semibold transition-all hover:scale-[1.02]"
-                >
-                  <ShieldAlert size={16} />
-                  Reject Data
-                </Button>
+                <div className="grid grid-cols-2 gap-4 pt-2">
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    onClick={handleSubmit((data) => onSubmitStatus('rejected', data))}
+                    disabled={isLoading}
+                    className="w-full"
+                  >
+                    <ShieldAlert size={16} className="mr-1" />
+                    Tolak Data
+                  </Button>
 
-                <Button
-                  type="button"
-                  onClick={handleSubmit((data) => onSubmitStatus('verified', data))}
-                  disabled={isLoading}
-                  className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-lg h-11 text-sm font-semibold transition-all hover:scale-[1.02] border-0 shadow-sm"
-                >
-                  <Check size={16} />
-                  Approve & Finalize
-                </Button>
-              </div>
-            </form>
+                  <Button
+                    variant="primary"
+                    type="button"
+                    onClick={handleSubmit((data) => onSubmitStatus('verified', data))}
+                    disabled={isLoading}
+                    className="w-full"
+                  >
+                    <Check size={16} className="mr-1" />
+                    Setujui & Finalisasi
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
           </Card>
         </div>
 
         <div className="space-y-6 lg:col-span-7">
-          <Card className="glass-card p-6">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-              Comprehensive Biomarker Data
-            </h3>
-            <div className="h-56 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} opacity={0.3} />
-                  <XAxis dataKey="month" tick={{ fontSize: 10, fill: tickColor }} tickLine={false} axisLine={false} />
-                  <YAxis tick={{ fontSize: 10, fill: tickColor }} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={{ backgroundColor: tooltipBg, borderColor: tooltipBorder, borderRadius: '8px', fontSize: '11px', color: isDark ? '#e2e8f0' : '#0f172a' }} />
-                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} iconType="circle" />
-                  <Line type="monotone" dataKey="miRNA-31" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 3 }} name="miRNA-31" />
-                  <Line type="monotone" dataKey="IL-8" stroke="#10b981" strokeWidth={2.5} dot={{ r: 3 }} name="IL-8" />
-                  <Line type="monotone" dataKey="Lactate" stroke="#f97316" strokeWidth={2.5} dot={{ r: 3 }} name="Lactate" />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="flex justify-end text-[10px] text-muted-foreground mt-2 font-medium">
-              Last 6 month, 6 months
-            </div>
+          <Card className="card-hover" variant="hover" accent="blue">
+            <CardHeader>
+              <CardTitle className="text-sm font-semibold">Data Biomarker Komprehensif</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-56 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} opacity={0.35} />
+                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: tickColor }} tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fontSize: 10, fill: tickColor }} tickLine={false} axisLine={false} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: tooltipBg,
+                        borderColor: tooltipBorder,
+                        borderRadius: '8px',
+                        fontSize: '11px',
+                        color: isDark ? '#E2E8F0' : '#0F172A'
+                      }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} iconType="circle" />
+                    <Line type="monotone" dataKey="miRNA-31" stroke="#2563EB" strokeWidth={2.5} dot={{ r: 3 }} name="miRNA-31" />
+                    <Line type="monotone" dataKey="IL-8" stroke="#10B981" strokeWidth={2.5} dot={{ r: 3 }} name="IL-8" />
+                    <Line type="monotone" dataKey="Lactate" stroke="#F59E0B" strokeWidth={2.5} dot={{ r: 3 }} name="Lactate" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex justify-end text-[10px] text-muted-foreground mt-2 font-medium">
+                Last 6 month, 6 months
+              </div>
+            </CardContent>
           </Card>
 
-          <Card className="glass-card p-6">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-              Biomarker Table Review
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead>
-                  <tr className="border-b border-border text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    <th className="pb-3">Biomarker</th>
-                    <th className="pb-3">Value</th>
-                    <th className="pb-3 text-center">Action</th>
-                    <th className="pb-3 text-right">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/40 text-foreground">
-                  {biomarkers.map((b) => (
-                    <tr key={b.name} className="hover:bg-slate-50 dark:hover:bg-slate-900/20 transition-colors">
-                      <td className="py-3.5 font-medium">{b.name}</td>
-                      <td className="py-3.5 font-mono">{b.val.toFixed(2)} {b.unit}</td>
-                      <td className="py-3.5 text-center">
-                        <div className="relative inline-flex items-center">
-                          <select className="appearance-none bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-foreground text-xs font-medium py-1.5 pl-3 pr-8 rounded border border-slate-200 dark:border-slate-700 cursor-pointer focus:outline-none transition-colors duration-200">
-                            <option>Override Value</option>
-                            <option>Normal Limit</option>
-                            <option>Set Abnormal</option>
-                          </select>
-                          <ChevronDown size={12} className="absolute right-2.5 text-muted-foreground pointer-events-none" />
-                        </div>
-                      </td>
-                      <td className="py-3.5 text-right">
-                        <span className={`inline-flex items-center gap-1 font-semibold text-xs ${b.isHigh ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                          - {b.status}
-                        </span>
-                      </td>
+          <Card className="card-hover" variant="hover" accent="violet">
+            <CardHeader>
+              <CardTitle className="text-sm font-semibold">Tabel Review Biomarker</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th className="pl-6 pr-4">Biomarker</th>
+                      <th className="px-4">Value</th>
+                      <th className="px-4 text-center">Action</th>
+                      <th className="pr-6 text-right">Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-border/50 text-foreground">
+                    {biomarkers.map((b) => (
+                      <tr key={b.name}>
+                        <td className="pl-6 pr-4 font-medium">{b.name}</td>
+                        <td className="px-4 font-mono tabular-nums">{b.val.toFixed(2)} {b.unit}</td>
+                        <td className="px-4 text-center">
+                          <div className="relative inline-flex items-center">
+                            <select className="appearance-none input bg-muted/50 pr-8 text-center text-xs font-medium w-36">
+                              <option>Override Value</option>
+                              <option>Normal Limit</option>
+                              <option>Set Abnormal</option>
+                            </select>
+                            <ChevronDown size={12} className="absolute right-2.5 text-muted-foreground pointer-events-none" />
+                          </div>
+                        </td>
+                        <td className="pr-6 text-right">
+                          <span className={`inline-flex items-center gap-1 font-semibold text-xs ${b.isHigh ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                            - {b.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
           </Card>
         </div>
       </div>
 
-      <div className="text-center text-[10px] text-muted-foreground pt-6">
+      <div className="text-center text-[10px] text-muted-foreground pt-6 border-t border-border">
         OSCAR Clinical Review v1.0 | © 2026 PKM KC Unhas
       </div>
 
       {role === 'admin' && (measurement.status === 'verified' || measurement.status === 'rejected') && (
-        <div className="mt-8 pt-4 border-t border-red-500/20 flex justify-center">
-          <Button 
+        <div className="pt-4 border-t border-border flex justify-center">
+          <Button
+            variant="destructive"
             onClick={handleDelete}
             disabled={isDeleting}
-            className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white"
+            className="w-full sm:w-auto"
           >
             Hapus Data
           </Button>

@@ -9,7 +9,7 @@ export interface BiomarkerItem {
   title: string;
   value: number | string;
   unit: string;
-  color?: 'blue' | 'green' | 'orange' | 'purple';
+  color?: 'blue' | 'emerald' | 'amber' | 'violet';
   onEdit?: () => void;
 }
 
@@ -30,6 +30,7 @@ const BIOMARKER_CONFIG: Record<string, {
   max: number;
   normalRange: string;
   description: string;
+  accentColor: 'blue' | 'emerald' | 'amber' | 'violet';
 }> = {
   'miRNA-31': {
     icon: Dna,
@@ -37,6 +38,7 @@ const BIOMARKER_CONFIG: Record<string, {
     max: BIOMARKER_LIMITS.MIRNA_MAX,
     normalRange: '< 2.0 RQ',
     description: 'Ekspresi gen micro RNA-31',
+    accentColor: 'blue',
   },
   'Asam Laktat': {
     icon: Droplets,
@@ -44,6 +46,7 @@ const BIOMARKER_CONFIG: Record<string, {
     max: BIOMARKER_LIMITS.LACTATE_MAX,
     normalRange: '< 200 mM',
     description: 'Kadar laktat dalam saliva',
+    accentColor: 'amber',
   },
   'IL-8': {
     icon: Zap,
@@ -51,18 +54,55 @@ const BIOMARKER_CONFIG: Record<string, {
     max: BIOMARKER_LIMITS.IL8_MAX,
     normalRange: '< 50 pg/mL',
     description: 'Interleukin-8 (biomarker inflamasi)',
+    accentColor: 'emerald',
   },
 };
 
 const COLOR_MAP = {
-  blue:   { bg: 'bg-blue-50 dark:bg-blue-900/20',   icon: 'text-blue-600 dark:text-blue-400',   iconBg: 'bg-blue-100 dark:bg-blue-900/40',   bar: 'bg-blue-500',   border: 'border-blue-200 dark:border-blue-800/50' },
-  green:  { bg: 'bg-emerald-50 dark:bg-emerald-900/20', icon: 'text-emerald-600 dark:text-emerald-400', iconBg: 'bg-emerald-100 dark:bg-emerald-900/40', bar: 'bg-emerald-500', border: 'border-emerald-200 dark:border-emerald-800/50' },
-  orange: { bg: 'bg-orange-50 dark:bg-orange-900/20', icon: 'text-orange-600 dark:text-orange-400', iconBg: 'bg-orange-100 dark:bg-orange-900/40', bar: 'bg-orange-500', border: 'border-orange-200 dark:border-orange-800/50' },
-  purple: { bg: 'bg-purple-50 dark:bg-purple-900/20', icon: 'text-purple-600 dark:text-purple-400', iconBg: 'bg-purple-100 dark:bg-purple-900/40', bar: 'bg-purple-500', border: 'border-purple-200 dark:border-purple-800/50' },
+  blue: {
+    cardBg:  'bg-gradient-to-br from-blue-50/90 via-white to-blue-50/40 dark:from-blue-950/40 dark:via-card dark:to-blue-950/20',
+    border:  'border-blue-300 dark:border-blue-800/60 shadow-sm',
+    topBar:  'bg-gradient-to-r from-blue-600 to-indigo-600',
+    iconBg:  'bg-blue-600 text-white shadow-sm',
+    icon:    'text-white',
+    bar:     'bg-blue-600',
+    label:   'text-blue-700 dark:text-blue-300',
+    valueText: 'text-blue-950 dark:text-blue-50',
+  },
+  emerald: {
+    cardBg:  'bg-gradient-to-br from-emerald-50/90 via-white to-emerald-50/40 dark:from-emerald-950/40 dark:via-card dark:to-emerald-950/20',
+    border:  'border-emerald-300 dark:border-emerald-800/60 shadow-sm',
+    topBar:  'bg-gradient-to-r from-emerald-600 to-teal-600',
+    iconBg:  'bg-emerald-600 text-white shadow-sm',
+    icon:    'text-white',
+    bar:     'bg-emerald-600',
+    label:   'text-emerald-700 dark:text-emerald-300',
+    valueText: 'text-emerald-950 dark:text-emerald-50',
+  },
+  amber: {
+    cardBg:  'bg-gradient-to-br from-amber-50/90 via-white to-amber-50/40 dark:from-amber-950/40 dark:via-card dark:to-amber-950/20',
+    border:  'border-amber-300 dark:border-amber-800/60 shadow-sm',
+    topBar:  'bg-gradient-to-r from-amber-600 to-orange-600',
+    iconBg:  'bg-amber-600 text-white shadow-sm',
+    icon:    'text-white',
+    bar:     'bg-amber-600',
+    label:   'text-amber-700 dark:text-amber-300',
+    valueText: 'text-amber-950 dark:text-amber-50',
+  },
+  violet: {
+    cardBg:  'bg-gradient-to-br from-violet-50/90 via-white to-violet-50/40 dark:from-violet-950/40 dark:via-card dark:to-violet-950/20',
+    border:  'border-violet-300 dark:border-violet-800/60 shadow-sm',
+    topBar:  'bg-gradient-to-r from-violet-600 to-purple-600',
+    iconBg:  'bg-violet-600 text-white shadow-sm',
+    icon:    'text-white',
+    bar:     'bg-violet-600',
+    label:   'text-violet-700 dark:text-violet-300',
+    valueText: 'text-violet-950 dark:text-violet-50',
+  },
 };
 
 function BiomarkerCard({ title, value, unit, color = 'blue', onEdit }: BiomarkerItem) {
-  const colors = COLOR_MAP[color];
+  const c = COLOR_MAP[color];
   const config = BIOMARKER_CONFIG[title];
   const Icon = config?.icon ?? Dna;
 
@@ -72,108 +112,117 @@ function BiomarkerCard({ title, value, unit, color = 'blue', onEdit }: Biomarker
 
   const isHigh = !isNaN(numVal) && config && numVal > (config.max * 0.5);
   const TrendIcon = isNaN(numVal) ? Minus : isHigh ? TrendingUp : TrendingDown;
-  const trendColor = isHigh
-    ? 'text-red-500 dark:text-red-400'
-    : 'text-emerald-500 dark:text-emerald-400';
+  const trendColor = isHigh ? 'text-red-500 dark:text-red-400' : 'text-emerald-500 dark:text-emerald-400';
+
+  // Determine accent color for left border
+  const accentColor = config?.accentColor ?? color;
 
   return (
-    <div className={`relative rounded-xl border p-4 card-hover transition-all ${colors.bg} ${colors.border} h-full`}>
-      <div className="flex items-start justify-between mb-2">
-        <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${colors.iconBg}`}>
-          <Icon size={16} className={colors.icon} strokeWidth={1.75} />
-        </div>
-        <div className="flex items-center gap-1">
-          <TrendIcon size={13} className={trendColor} />
-          {onEdit && (
-            <button onClick={onEdit} className="ml-1 p-0.5 rounded-md text-muted-foreground hover:bg-white/60 dark:hover:bg-slate-700/40 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 20h9" />
-                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-              </svg>
-            </button>
-          )}
-        </div>
-      </div>
+    <div className={`rounded-2xl border overflow-hidden card-hover h-full flex flex-col ${c.cardBg} ${c.border}`} style={{ borderTop: '1px solid rgba(255, 255, 255, 0.9)' }}>
+      {/* Top accent strip */}
+      <div className={`h-1.5 w-full ${c.topBar} shrink-0`} />
 
-      <div className="mb-2">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{title}</p>
-        <div className="flex items-baseline gap-1.5 mt-0.5">
-          <span className="text-xl font-bold tabular-nums text-foreground">
+      <div className="flex flex-col flex-1 p-5">
+        {/* Header row */}
+        <div className="flex items-start justify-between mb-4">
+          <div className={`flex items-center justify-center w-10 h-10 rounded-xl ${c.iconBg}`}>
+            <Icon size={19} className={c.icon} strokeWidth={2} />
+          </div>
+          <div className="flex items-center gap-1">
+            <TrendIcon size={14} className={trendColor} />
+            {onEdit && (
+              <button
+                onClick={onEdit}
+                className="ml-1 p-1 rounded text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Label */}
+        <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${c.label}`}>{title}</p>
+
+        {/* Value */}
+        <div className="flex items-baseline gap-2 mb-1">
+          <span className={`text-2xl font-extrabold tabular-nums tracking-tight ${c.valueText}`}>
             {typeof value === 'number' ? value.toFixed(value < 10 ? 2 : 1) : value}
           </span>
-          <span className="text-[10px] text-muted-foreground font-medium">{unit}</span>
+          <span className="text-xs text-muted-foreground font-semibold">{unit}</span>
         </div>
-        {config && <p className="text-[10px] text-muted-foreground mt-0.5">{config.description}</p>}
-      </div>
 
-      {!isNaN(numVal) && (
-        <div className="space-y-1">
-          <div className="flex justify-between text-[9px] text-muted-foreground">
-            <span>Normal: {config?.normalRange ?? '—'}</span>
-            <span>{barPercent.toFixed(0)}% dari maks</span>
+        {config && (
+          <p className="text-xs text-muted-foreground leading-snug mb-4">{config.description}</p>
+        )}
+
+        {/* Progress bar */}
+        <div className="mt-auto space-y-2">
+          <div className="flex justify-between text-[10px] text-muted-foreground">
+            <span className="font-medium">Ref: {config?.normalRange ?? '—'}</span>
+            {!isNaN(numVal) && <span className="font-bold">{barPercent.toFixed(0)}%</span>}
           </div>
-          <div className="h-1 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-            <div className={`h-full rounded-full transition-all duration-700 ${colors.bar}`} style={{ width: `${barPercent}%` }} />
+          <div className="h-1.5 rounded-full bg-slate-200/80 dark:bg-slate-700/60 overflow-hidden shadow-inner">
+            <div
+              className={`h-full rounded-full transition-all duration-700 ease-out ${c.bar}`}
+              style={{ width: isNaN(numVal) ? '0%' : `${barPercent}%` }}
+            />
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
 const DEFAULT_DATA: BiomarkerItem[] = [
   { title: 'miRNA-31',    value: '--', unit: 'RQ',    color: 'blue' },
-  { title: 'Asam Laktat', value: '--', unit: 'mM',    color: 'orange' },
-  { title: 'IL-8',        value: '--', unit: 'pg/mL', color: 'green' },
+  { title: 'Asam Laktat', value: '--', unit: 'mM',    color: 'amber' },
+  { title: 'IL-8',        value: '--', unit: 'pg/mL', color: 'emerald' },
 ];
 
 export function BiomarkerCards({ data, onEdit, latestInfo }: BiomarkerCardsProps) {
   const items = data ?? DEFAULT_DATA;
 
   return (
-    <Card className="glass-card">
+    <Card className="card-hover" variant="hover" accent="blue">
       <CardHeader className="pb-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30">
-              <Dna size={16} className="text-purple-600 dark:text-purple-400" strokeWidth={1.75} />
+          {/* Title */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800/30">
+              <Dna size={18} className="text-blue-600 dark:text-blue-400" strokeWidth={1.75} />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <CardTitle className="text-base font-semibold">Data Biomarker</CardTitle>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold border border-blue-200 dark:border-blue-800">
-                  Data Terakhir Masuk
+                <span className="badge badge-info">
+                  Data Terakhir
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {latestInfo?.trackingId ? `ID: ${latestInfo.trackingId} • ${latestInfo.createdAt || ''}` : 'Hasil sensor multi-omics data terbaru'}
+                {latestInfo?.trackingId
+                  ? `ID: ${latestInfo.trackingId} • ${latestInfo.createdAt || ''}`
+                  : 'Hasil sensor multi-omics terbaru'}
               </p>
             </div>
           </div>
 
+          {/* OSCC probability badge */}
           {latestInfo?.probability !== undefined && (
-            <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shrink-0">
-              <Activity size={15} className="text-blue-500 animate-pulse" />
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-50/90 to-indigo-50/70 dark:from-blue-950/50 dark:to-indigo-950/30 border border-blue-200/80 dark:border-blue-800/50 shadow-sm shrink-0">
+              <Activity size={18} className="text-blue-600 dark:text-blue-400 animate-pulse" />
               <div>
-                <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
-                  Probabilitas OSCC (Data Terakhir)
+                <p className="text-[10px] text-blue-800 dark:text-blue-300 uppercase font-bold tracking-wider leading-none mb-1">
+                  Probabilitas OSCC
                 </p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className={`text-lg font-extrabold tabular-nums ${
-                    latestInfo.probability >= 70
-                      ? 'text-red-600 dark:text-red-400'
-                      : latestInfo.probability >= 40
-                      ? 'text-amber-600 dark:text-amber-400'
-                      : 'text-emerald-600 dark:text-emerald-400'
-                  }`}>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xl font-extrabold tabular-nums tracking-tight ${latestInfo.probability >= 70 ? 'text-red-600 dark:text-red-400' : latestInfo.probability >= 40 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                     {latestInfo.probability.toFixed(1)}%
                   </span>
                   {latestInfo.predClass && (
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
-                      latestInfo.predClass === 'OSCC'
-                        ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400 border border-red-200 dark:border-red-500/30'
-                        : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30'
-                    }`}>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-lg font-bold uppercase tracking-wide border shadow-2xs ${latestInfo.predClass === 'OSCC' ? 'bg-red-100 text-red-700 border-red-300 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800' : 'bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800'}`}>
                       {latestInfo.predClass}
                     </span>
                   )}
@@ -183,8 +232,9 @@ export function BiomarkerCards({ data, onEdit, latestInfo }: BiomarkerCardsProps
           )}
         </div>
       </CardHeader>
+
       <CardContent>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {items.map((item, idx) => (
             <BiomarkerCard
               key={item.title}

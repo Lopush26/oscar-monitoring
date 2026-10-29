@@ -3,7 +3,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Card } from '@/components/ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { UserPlus, Trash2, Shield, UserCheck, Key, RefreshCw } from 'lucide-react';
 
 interface UserItem {
@@ -156,40 +158,35 @@ export default function AdminClient() {
   const dokterCount = users.filter((u) => u.role === 'dokter').length;
 
   return (
-    <div className="space-y-6">
+    <div className="section">
       {/* Header Bar */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Admin Panel</h1>
-          <p className="text-muted-foreground text-sm">Manajemen akun pengguna dan peran sistem OSCAR</p>
+          <h1 className="page-title">Admin Panel</h1>
+          <p className="page-subtitle">Manajemen akun pengguna dan peran sistem OSCAR</p>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-sm"
-          >
-            <UserPlus size={16} />
+          <Button onClick={() => setShowAddModal(true)} icon={<UserPlus size={16} />} iconPosition="left" size="sm">
             Tambah User Baru
-          </button>
-          <Link
-            href="/dashboard"
-            className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-foreground text-sm font-medium rounded-lg transition-colors duration-200"
-          >
-            Kembali ke Dashboard
+          </Button>
+          <Link href="/dashboard">
+            <Button variant="secondary" size="sm">
+              Kembali ke Dashboard
+            </Button>
           </Link>
         </div>
       </div>
 
       {/* Notifications */}
       {error && (
-        <div className="p-4 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-center justify-between">
           <span>⚠️ {error}</span>
-          <button onClick={() => setError(null)} className="text-xs underline font-semibold">Tutup</button>
+          <button onClick={() => setError(null)} className="text-xs underline font-semibold text-destructive hover:text-destructive/80">Tutup</button>
         </div>
       )}
 
       {successMsg && (
-        <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800/30 text-emerald-700 dark:text-emerald-300 text-sm flex items-center justify-between">
           <span>✅ {successMsg}</span>
           <button onClick={() => setSuccessMsg(null)} className="text-xs underline font-semibold">Tutup</button>
         </div>
@@ -197,182 +194,176 @@ export default function AdminClient() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card className="glass-card p-5 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground uppercase font-semibold">Total Pengguna</p>
-            <p className="text-3xl font-extrabold text-foreground mt-1 tabular-nums">{users.length}</p>
-          </div>
-          <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
-            <UserCheck size={20} />
-          </div>
+        <Card className="card-hover" variant="hover" accent="blue">
+          <CardContent className="flex items-center justify-between p-5">
+            <div>
+              <p className="stat-label">Total Pengguna</p>
+              <p className="stat-value">{users.length}</p>
+            </div>
+            <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+              <UserCheck size={22} />
+            </div>
+          </CardContent>
         </Card>
-        <Card className="glass-card p-5 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground uppercase font-semibold">Akun Administrator</p>
-            <p className="text-3xl font-extrabold text-purple-600 dark:text-purple-400 mt-1 tabular-nums">{adminCount}</p>
-          </div>
-          <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400">
-            <Shield size={20} />
-          </div>
+        <Card className="card-hover" variant="hover" accent="violet">
+          <CardContent className="flex items-center justify-between p-5">
+            <div>
+              <p className="stat-label">Akun Administrator</p>
+              <p className="stat-value text-purple-600 dark:text-purple-400">{adminCount}</p>
+            </div>
+            <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
+              <Shield size={22} />
+            </div>
+          </CardContent>
         </Card>
-        <Card className="glass-card p-5 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground uppercase font-semibold">Akun Dokter</p>
-            <p className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1 tabular-nums">{dokterCount}</p>
-          </div>
-          <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-            <UserCheck size={20} />
-          </div>
+        <Card className="card-hover" variant="hover" accent="emerald">
+          <CardContent className="flex items-center justify-between p-5">
+            <div>
+              <p className="stat-label">Akun Dokter</p>
+              <p className="stat-value text-emerald-600 dark:text-emerald-400">{dokterCount}</p>
+            </div>
+            <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+              <UserCheck size={22} />
+            </div>
+          </CardContent>
         </Card>
       </div>
 
       {/* Users Table Card */}
-      <Card className="glass-card p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-foreground">Daftar Pengguna Terdaftar</h2>
-          <button
-            onClick={fetchUsers}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            title="Refresh data"
-          >
-            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-            Refresh
-          </button>
-        </div>
-
-        {loading ? (
-          <div className="py-12 text-center text-muted-foreground">
-            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-sm">Memuat daftar pengguna...</p>
+      <Card className="card-hover" variant="hover" accent="blue">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-semibold">Daftar Pengguna Terdaftar</CardTitle>
+            <Button variant="ghost" size="sm" icon={<RefreshCw size={14} />} iconPosition="right" onClick={fetchUsers} disabled={loading}>
+              Refresh
+            </Button>
           </div>
-        ) : users.length === 0 ? (
-          <div className="py-12 text-center text-muted-foreground">
-            <p>Belum ada user terdaftar dalam database.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-left">
-                  <th className="py-3 px-2 text-muted-foreground font-semibold">ID</th>
-                  <th className="py-3 px-2 text-muted-foreground font-semibold">Username</th>
-                  <th className="py-3 px-2 text-muted-foreground font-semibold">Role</th>
-                  <th className="py-3 px-2 text-muted-foreground font-semibold">Tgl Dibuat</th>
-                  <th className="py-3 px-2 text-right text-muted-foreground font-semibold">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/50">
-                {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3 px-2 text-foreground font-mono text-xs">{user.id}</td>
-                    <td className="py-3 px-2 font-medium text-foreground">{user.username}</td>
-                    <td className="py-3 px-2">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                          user.role === 'admin'
-                            ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30'
-                            : 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30'
-                        }`}
-                      >
-                        {user.role === 'admin' && <Shield size={12} />}
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="py-3 px-2 text-muted-foreground text-xs">
-                      {user.created_at ? new Date(user.created_at).toLocaleDateString('id-ID', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                      }) : '-'}
-                    </td>
-                    <td className="py-3 px-2 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setShowResetModal(true);
-                          }}
-                          className="px-2.5 py-1 rounded text-xs font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors inline-flex items-center gap-1"
-                          title="Reset Password"
-                        >
-                          <Key size={13} />
-                          Pass
-                        </button>
-                        <button
-                          onClick={() => handleDeleteUser(user)}
-                          className="px-2.5 py-1 rounded text-xs font-medium text-red-600 hover:text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors inline-flex items-center gap-1"
-                          title="Hapus User"
-                        >
-                          <Trash2 size={13} />
-                          Hapus
-                        </button>
-                      </div>
-                    </td>
+        </CardHeader>
+        <CardContent className="pt-0">
+          {loading ? (
+            <div className="py-12 text-center text-muted-foreground">
+              <div className="spinner mx-auto mb-3" />
+              <p className="text-sm">Memuat daftar pengguna...</p>
+            </div>
+          ) : users.length === 0 ? (
+            <div className="py-12 text-center text-muted-foreground">
+              <p>Belum ada user terdaftar dalam database.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto -mx-6">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th className="pl-6 pr-4">ID</th>
+                    <th className="px-4">Username</th>
+                    <th className="px-4">Role</th>
+                    <th className="px-4">Tgl Dibuat</th>
+                    <th className="pr-6 text-right">Aksi</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="divide-y divide-border/50">
+                  {users.map((user) => (
+                    <tr key={user.id}>
+                      <td className="pl-6 pr-4 text-foreground font-mono text-xs">{user.id}</td>
+                      <td className="px-4 font-medium text-foreground">{user.username}</td>
+                      <td className="px-4">
+                        <span className={`badge ${user.role === 'admin' ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/30' : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/30'}`}>
+                          {user.role === 'admin' && <Shield size={12} className="mr-1" />}
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="px-4 text-muted-foreground text-xs">
+                        {user.created_at ? new Date(user.created_at).toLocaleDateString('id-ID', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric',
+                        }) : '-'}
+                      </td>
+                      <td className="pr-6 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            icon={<Key size={13} />}
+                            iconPosition="left"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setShowResetModal(true);
+                            }}
+                            className="text-amber-600 dark:text-amber-400 hover:text-amber-500 dark:hover:text-amber-300"
+                          >
+                            Password
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            icon={<Trash2 size={13} />}
+                            iconPosition="left"
+                            onClick={() => handleDeleteUser(user)}
+                          >
+                            Hapus
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
       </Card>
 
       {/* Modal: Tambah User */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <Card className="w-full max-w-md glass-card p-6 bg-background">
-            <h3 className="text-xl font-bold text-foreground mb-4">Tambah User Baru</h3>
-            <form onSubmit={handleAddUser} className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-foreground block mb-1">Username</label>
-                <input
-                  type="text"
-                  value={newUsername}
-                  onChange={(e) => setNewUsername(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Masukkan username"
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-foreground block mb-1">Password</label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Minimal 6 karakter"
-                  required
-                  minLength={6}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-foreground block mb-1">Role</label>
-                <select
-                  value={newRole}
-                  onChange={(e) => setNewRole(e.target.value as any)}
-                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="dokter">Dokter</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
-                >
-                  {submitting ? 'Menyimpan...' : 'Simpan User'}
-                </button>
-              </div>
-            </form>
+          <Card className="w-full max-w-md card-hover animate-scale-in" variant="hover" accent="blue">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Tambah User Baru</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleAddUser} className="space-y-4">
+                <div>
+                  <Input
+                    label="Username"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                    placeholder="Masukkan username"
+                    required
+                  />
+                </div>
+                <div>
+                  <Input
+                    type="password"
+                    label="Password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Minimal 6 karakter"
+                    required
+                    minLength={6}
+                  />
+                </div>
+                <div>
+                  <label className="label">Role</label>
+                  <select
+                    value={newRole}
+                    onChange={(e) => setNewRole(e.target.value as any)}
+                    className="input"
+                  >
+                    <option value="dokter">Dokter</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <Button variant="ghost" type="button" onClick={() => setShowAddModal(false)} size="sm">
+                    Batal
+                  </Button>
+                  <Button type="submit" disabled={submitting} size="sm">
+                    {submitting ? 'Menyimpan...' : 'Simpan User'}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
           </Card>
         </div>
       )}
@@ -380,42 +371,34 @@ export default function AdminClient() {
       {/* Modal: Reset Password */}
       {showResetModal && selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <Card className="w-full max-w-md glass-card p-6 bg-background">
-            <h3 className="text-xl font-bold text-foreground mb-2">Ganti Password User</h3>
-            <p className="text-sm text-muted-foreground mb-4">Mengubah password untuk akun: <span className="font-semibold text-foreground">{selectedUser.username}</span></p>
-            <form onSubmit={handleResetPassword} className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-foreground block mb-1">Password Baru</label>
-                <input
-                  type="password"
-                  value={resetPassword}
-                  onChange={(e) => setResetPassword(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Masukkan password baru"
-                  required
-                  minLength={6}
-                />
-              </div>
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowResetModal(false);
-                    setSelectedUser(null);
-                  }}
-                  className="px-4 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
-                >
-                  {submitting ? 'Memproses...' : 'Update Password'}
-                </button>
-              </div>
-            </form>
+          <Card className="w-full max-w-md card-hover animate-scale-in" variant="hover" accent="amber">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Ganti Password User</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">Mengubah password untuk akun: <span className="font-semibold text-foreground">{selectedUser.username}</span></p>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                <div>
+                  <Input
+                    type="password"
+                    label="Password Baru"
+                    value={resetPassword}
+                    onChange={(e) => setResetPassword(e.target.value)}
+                    placeholder="Masukkan password baru"
+                    required
+                    minLength={6}
+                  />
+                </div>
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <Button variant="ghost" type="button" onClick={() => { setShowResetModal(false); setSelectedUser(null); }} size="sm">
+                    Batal
+                  </Button>
+                  <Button variant="destructive" type="submit" disabled={submitting} size="sm">
+                    {submitting ? 'Memproses...' : 'Update Password'}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
           </Card>
         </div>
       )}

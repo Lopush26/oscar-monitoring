@@ -5,7 +5,7 @@ import { Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -13,27 +13,27 @@ export function ThemeToggle() {
   if (!mounted) {
     return (
       <button
-        className="flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 transition-colors duration-300"
+        className="flex items-center justify-center w-10 h-10 rounded-xl border border-border/60 bg-muted/50 hover:bg-muted transition-all duration-200 ease-out"
         aria-label="Toggle theme"
       >
-        <div className="w-4 h-4" />
+        <div className="w-5 h-5" />
       </button>
     );
   }
 
-  const isDark = theme === 'dark';
+  const isDark = resolvedTheme === 'dark';
 
   return (
     <button
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className="flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-300"
+      className="flex items-center justify-center w-10 h-10 rounded-xl border border-border/60 bg-muted/50 hover:bg-muted transition-all duration-200 ease-out"
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       title={isDark ? 'Mode Terang' : 'Mode Gelap'}
     >
       {isDark ? (
-        <Sun size={16} className="text-amber-400" />
+        <Sun size={18} className="text-amber-500" />
       ) : (
-        <Moon size={16} className="text-slate-600" />
+        <Moon size={18} className="text-blue-600 dark:text-blue-400" />
       )}
     </button>
   );

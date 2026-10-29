@@ -65,10 +65,9 @@ export default async function VerifyPage({ params }: VerifyPageProps) {
   }
 
   return (
-    <div className="text-slate-100">
+    <div className="min-h-screen">
       {/* Kirim measurement data ke VerifyForm */}
       <VerifyForm measurement={measurement} role={user?.role} />
     </div>
   );
 }
-

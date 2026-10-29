@@ -4,12 +4,12 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getPool } from '@/lib/db';
-import { withAuth } from '@/lib/middleware';
-import { MeasurementSchema, MeasurementQuerySchema } from '@/lib/validators';
+import { withAuth, AuthenticatedRequest } from '@/lib/middleware';
+import { MeasurementSchema } from '@/lib/validators';
 import { generateTrackingId } from '@/lib/utils';
 
 // ============================================
-// POST: Kirim data dari Raspberry Pi
+// POST: Kirim data dari IoT / Raspberry Pi
 // ============================================
 export async function POST(req: NextRequest) {
   try {
@@ -44,9 +44,9 @@ export async function POST(req: NextRequest) {
 }
 
 // ============================================
-// GET: List measurements (dengan filter)
+// GET: List measurements (dilindungi Auth)
 // ============================================
-export async function GET(req: NextRequest) {
+export const GET = withAuth(async (req: AuthenticatedRequest) => {
   try {
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status') || 'all';
@@ -88,4 +88,4 @@ export async function GET(req: NextRequest) {
     console.error('Measurement GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+});

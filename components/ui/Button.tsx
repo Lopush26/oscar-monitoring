@@ -3,23 +3,25 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef, ButtonHTMLAttributes, ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
 
-// Definisi variants dengan cva
+// Button variants using CVA - Refined Elegant
 const buttonVariants = cva(
-  // Base styles
-  "inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed",
   {
     variants: {
       variant: {
-        primary: "bg-primary text-white hover:bg-primary/90 focus-visible:ring-primary",
-        secondary: "bg-secondary text-white hover:bg-secondary/90 focus-visible:ring-secondary",
-        outline: "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+        primary: "bg-primary text-primary-foreground px-5 py-2.5 shadow-elegant-sm hover:bg-primary-hover hover:shadow-elegant-md active:scale-[0.98]",
+        secondary: "bg-secondary text-secondary-foreground px-5 py-2.5 border border-border/60 hover:bg-secondary/80",
+        outline: "border border-border/60 bg-transparent hover:bg-muted px-5 py-2.5",
+        ghost: "bg-transparent hover:bg-muted px-5 py-2.5",
+        destructive: "bg-destructive text-destructive-foreground px-5 py-2.5 shadow-elegant-sm hover:bg-destructive/90 active:scale-[0.98]",
       },
       size: {
-        default: "h-10 px-4 py-2 text-sm",
-        sm: "h-9 px-3 text-xs",
-        lg: "h-11 px-8 text-base",
-        icon: "h-10 w-10",
+        default: "h-11 px-5 py-2.5 text-sm",
+        sm: "h-9 px-4 text-xs",
+        lg: "h-12 px-6 text-base",
+        icon: "h-11 w-11",
+        iconSm: "h-9 w-9",
+        iconLg: "h-12 w-12",
       },
     },
     defaultVariants: {
@@ -29,7 +31,6 @@ const buttonVariants = cva(
   }
 );
 
-// Type untuk props
 export interface ButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {

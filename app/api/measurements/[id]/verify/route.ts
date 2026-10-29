@@ -1,9 +1,10 @@
 // app/api/measurements/[id]/verify/route.ts
 export const dynamic = 'force-dynamic'; 
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getPool } from '@/lib/db';
 import { z } from 'zod';
+import { withAuth, AuthenticatedRequest } from '@/lib/middleware';
 
 const verifySchema = z.object({
   patient_id: z.string().min(1),
@@ -11,12 +12,12 @@ const verifySchema = z.object({
   notes: z.string().optional(),
 });
 
-export async function POST(
-  req: NextRequest,
+export const POST = withAuth(async (
+  req: AuthenticatedRequest,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
-    const { id } = params; // id = tracking_id (string)
+    const { id } = await params; // id = tracking_id (string)
     const body = await req.json();
     const { patient_id, status, notes } = verifySchema.parse(body);
 
@@ -34,24 +35,25 @@ export async function POST(
     }
 
     const measurementId = measurements[0].id;
+    const userId = req.user?.userId || null;
 
-    // 2. UPDATE menggunakan tracking_id (bukan id)
+    // 2. UPDATE menggunakan tracking_id
     await pool.query(
       `UPDATE Measurements 
-       SET patient_id = ?, status = ?, verified_at = NOW(), notes = ?
+       SET patient_id = ?, status = ?, verified_at = NOW(), verified_by = ?, notes = ?
        WHERE tracking_id = ?`,
-      [patient_id, status, notes || null, id] // ← PASTIKAN tracking_id!
+      [patient_id, status, userId, notes || null, id]
     );
 
-    // 3. Audit log menggunakan measurementId (integer)
+    // 3. Audit log
     await pool.query(
-      `INSERT INTO Audit_Logs (measurement_id, action, previous_value)
-       VALUES (?, ?, ?)`,
-      [measurementId, 'verify', JSON.stringify({ status, notes })]
+      `INSERT INTO Audit_Logs (measurement_id, user_id, action, previous_value)
+       VALUES (?, ?, ?, ?)`,
+      [measurementId, userId, 'verify', JSON.stringify({ status, notes })]
     );
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: error.errors.map(e => e.message).join(', ') },
@@ -60,8 +62,8 @@ export async function POST(
     }
     console.error('❌ Verify error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: error.message || 'Internal server error' },
       { status: 500 }
     );
   }
-}
+});

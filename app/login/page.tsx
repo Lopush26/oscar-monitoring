@@ -1,8 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Activity } from 'lucide-react';
+import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Lock, User, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -38,51 +41,75 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center p-4">
-      <Card className="w-full max-w-md glass-card p-6">
-        <CardHeader className="space-y-1 flex flex-col items-center">
-          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-500/10 rounded-full flex items-center justify-center mb-4 border border-blue-200 dark:border-blue-500/20 transition-colors duration-300">
-            <Activity className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+    <div className="login-container relative">
+      {/* Ambient light ornament - subtle glow behind card */}
+      <div className="absolute inset-0 -z-10 flex items-center justify-center pointer-events-none">
+        <div className="w-[500px] h-[500px] rounded-full bg-primary/10 blur-3xl opacity-50" />
+      </div>
+
+      <Card className="login-card animate-slide-up" variant="hover" accent="blue">
+        <CardHeader className="space-y-2 flex flex-col items-center pb-4">
+          <div className="relative mb-4 flex items-center justify-center">
+            <Image
+              src="/oscar-logo.png"
+              alt="Logo OSCAR"
+              width={96}
+              height={96}
+              priority
+              className="rounded-xl object-contain drop-shadow-[0_4px_12px_rgba(15,23,42,0.08)]"
+            />
           </div>
           <CardTitle className="text-2xl text-center font-bold text-foreground">Login OSCAR</CardTitle>
+          <p className="text-sm text-muted-foreground text-center font-medium">Sistem Deteksi Dini OSCC</p>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4 mt-6">
+        <CardContent className="pt-2">
+          <form onSubmit={handleLogin} className="space-y-5 mt-6">
             {error && (
-              <div className="p-3 rounded bg-red-100 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm text-center transition-colors duration-300">
-                {error}
+              <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-center gap-3 animate-fade-in">
+                <AlertCircle size={18} className="shrink-0" />
+                <span>{error}</span>
               </div>
             )}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Username</label>
-              <input
+              <Input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-md px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-400 dark:placeholder-slate-500 transition-colors duration-300"
                 placeholder="Masukkan username"
                 required
+                leftIcon={<User size={20} className="text-muted-foreground" />}
+                label="Username"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Password</label>
-              <input
+              <Input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-700 rounded-md px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-400 dark:placeholder-slate-500 transition-colors duration-300"
                 placeholder="Masukkan password"
                 required
+                leftIcon={<Lock size={20} className="text-muted-foreground" />}
+                label="Password"
               />
             </div>
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+              className="w-full"
+              size="lg"
             >
-              {loading ? 'Memproses...' : 'Login'}
-            </button>
+              {loading ? 'Memproses...' : 'Masuk'}
+            </Button>
           </form>
+          
+          <div className="mt-8 pt-6 border-t border-border/50 text-center">
+            <p className="text-xs text-muted-foreground font-medium">
+              OSCAR Elite System v1.1.1
+            </p>
+            <p className="text-[10px] text-muted-foreground/70 mt-1.5">
+              © 2026 PKM KC UNHAS
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

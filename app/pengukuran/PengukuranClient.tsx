@@ -3,7 +3,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Card } from '@/components/ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Trash2, ArrowLeft } from 'lucide-react';
 
 export default function PengukuranClient() {
   const [data, setData] = useState<any[]>([]);
@@ -47,77 +49,97 @@ export default function PengukuranClient() {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'verified':
+        return <span className="badge badge-success">Terverifikasi</span>;
+      case 'rejected':
+        return <span className="badge badge-danger">Ditolak</span>;
+      default:
+        return <span className="badge badge-warning">Perlu Verifikasi</span>;
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="section">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Data Pengukuran</h1>
-          <p className="text-muted-foreground">Semua data pengukuran biomarker</p>
+          <h1 className="page-title">Data Pengukuran</h1>
+          <p className="page-subtitle">Semua data pengukuran biomarker</p>
         </div>
-        <Link
-          href="/dashboard"
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
-        >
-          Kembali ke Dashboard
+        <Link href="/dashboard">
+          <Button variant="secondary" icon={<ArrowLeft size={16} />} iconPosition="left" size="sm">
+            Kembali ke Dashboard
+          </Button>
         </Link>
       </div>
 
-      <Card className="glass-card p-6">
-        {loading ? (
-          <div className="text-muted-foreground">Memuat data...</div>
-        ) : data.length === 0 ? (
-          <div className="text-muted-foreground">Belum ada data pengukuran.</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-2 text-muted-foreground font-semibold">Tracking ID</th>
-                  <th className="text-left py-2 text-muted-foreground font-semibold">miRNA-31</th>
-                  <th className="text-left py-2 text-muted-foreground font-semibold">Laktat (μM)</th>
-                  <th className="text-left py-2 text-muted-foreground font-semibold">IL-8 (pg/mL)</th>
-                  <th className="text-left py-2 text-muted-foreground font-semibold">Status</th>
-                  <th className="text-left py-2 text-muted-foreground font-semibold">Prob.</th>
-                  <th className="text-right py-2 text-muted-foreground font-semibold">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.map((item: any) => (
-                  <tr key={item.id} className="border-b border-border/50 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3 font-mono text-xs text-foreground">{item.tracking_id}</td>
-                    <td className="py-3 text-foreground">{item.mirna31 || '-'}</td>
-                    <td className="py-3 text-foreground">{item.lactate_uM || '-'}</td>
-                    <td className="py-3 text-foreground">{item.il8_pg_mg || '-'}</td>
-                    <td className="py-3">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                        item.status === 'verified'
-                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'
-                          : item.status === 'rejected'
-                          ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
-                          : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
-                      } transition-colors duration-300`}>
-                        {item.status || 'raw'}
-                      </span>
-                    </td>
-                    <td className="py-3 text-foreground">{item.ai_probability ? `${Number(item.ai_probability).toFixed(1)}%` : '-'}</td>
-                    <td className="py-3 text-right">
-                      {role === 'admin' ? (
-                        <button
-                          onClick={() => handleDelete(item.tracking_id)}
-                          className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs font-semibold transition-colors duration-200"
-                        >
-                          Hapus
-                        </button>
-                      ) : (
-                        <span className="text-muted-foreground text-xs">-</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <Card className="card-hover" variant="hover" accent="blue">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-semibold">Daftar Pengukuran</CardTitle>
+            <span className="badge badge-muted">{data.length} total</span>
           </div>
-        )}
+        </CardHeader>
+        <CardContent className="pt-0">
+          {loading ? (
+            <div className="py-12 text-center text-muted-foreground">
+              <div className="spinner mx-auto mb-3" />
+              <p className="text-sm">Memuat data...</p>
+            </div>
+          ) : data.length === 0 ? (
+            <div className="py-12 text-center text-muted-foreground">
+              <p>Belum ada data pengukuran.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto -mx-6">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th className="pl-6 pr-4">Tracking ID</th>
+                    <th className="px-4">miRNA-31</th>
+                    <th className="px-4">Laktat (μM)</th>
+                    <th className="px-4">IL-8 (pg/mL)</th>
+                    <th className="px-4">Status</th>
+                    <th className="px-4">Prob.</th>
+                    <th className="pr-6 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.map((item: any) => (
+                    <tr key={item.id}>
+                      <td className="pl-6 pr-4">
+                        <span className="font-mono text-xs text-foreground">{item.tracking_id}</span>
+                      </td>
+                      <td className="px-4 text-foreground">{item.mirna31 || '-'}</td>
+                      <td className="px-4 text-foreground">{item.lactate_uM || '-'}</td>
+                      <td className="px-4 text-foreground">{item.il8_pg_mg || '-'}</td>
+                      <td className="px-4">{getStatusBadge(item.status || 'raw')}</td>
+                      <td className="px-4 text-foreground">
+                        {item.ai_probability ? `${Number(item.ai_probability).toFixed(1)}%` : '-'}
+                      </td>
+                      <td className="pr-6 text-right">
+                        {role === 'admin' ? (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            icon={<Trash2 size={13} />}
+                            iconPosition="left"
+                            onClick={() => handleDelete(item.tracking_id)}
+                          >
+                            Hapus
+                          </Button>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
       </Card>
     </div>
   );

@@ -16,17 +16,17 @@ const UpdateSchema = z.object({
 // ============================================
 // GET: Ambil detail satu measurement
 // ============================================
-export async function GET(
-  req: NextRequest,
+export const GET = withAuth(async (
+  req: any,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
     const { id } = await params;
     const pool = getPool();
 
     // Cari berdasarkan id atau tracking_id
     const [rows] = await pool.query(
-      `SELECT * FROM Measurements WHERE id = ? OR tracking_id = ?`,
+      `SELECT * FROM Measurements WHERE (id = ? OR tracking_id = ?) AND deleted_at IS NULL`,
       [isNaN(Number(id)) ? null : Number(id), id]
     );
 
@@ -40,7 +40,7 @@ export async function GET(
     console.error('Measurement GET detail error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+});
 
 // ============================================
 // PATCH: Update measurement (dengan auth)

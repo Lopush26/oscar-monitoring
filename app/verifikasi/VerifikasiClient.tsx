@@ -3,8 +3,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Card } from '@/components/ui/Card';
-import { Check, ShieldAlert, Clock, Trash2, Eye } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Check, ShieldAlert, Clock, Trash2, Eye, ArrowLeft } from 'lucide-react';
 
 export default function VerifikasiClient() {
   const [data, setData] = useState<any[]>([]);
@@ -60,75 +61,88 @@ export default function VerifikasiClient() {
   const verifiedCount = data.filter((item) => item.status === 'verified').length;
   const rejectedCount = data.filter((item) => item.status === 'rejected').length;
 
+  const filterTabs = [
+    { key: 'all' as const, label: `Semua (${data.length})`, icon: null },
+    { key: 'raw' as const, label: `Perlu Verifikasi (${rawCount})`, icon: Clock },
+    { key: 'verified' as const, label: `Terverifikasi (${verifiedCount})`, icon: Check },
+    { key: 'rejected' as const, label: `Ditolak (${rejectedCount})`, icon: ShieldAlert, condition: rejectedCount > 0 },
+  ];
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'verified':
+        return <span className="badge badge-success"><Check size={12} className="mr-1" />Terverifikasi</span>;
+      case 'rejected':
+        return <span className="badge badge-danger"><ShieldAlert size={12} className="mr-1" />Ditolak</span>;
+      default:
+        return <span className="badge badge-warning"><Clock size={12} className="mr-1" />Perlu Verifikasi</span>;
+    }
+  };
+
+  const getStatusAccent = (status: string) => {
+    switch (status) {
+      case 'verified':
+        return 'emerald';
+      case 'rejected':
+        return 'red';
+      default:
+        return 'amber';
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="section">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Verifikasi Dokter</h1>
-          <p className="text-muted-foreground text-sm">Riwayat lengkap data pengukuran biomarker dan status verifikasi klinis</p>
+          <h1 className="page-title">Verifikasi Dokter</h1>
+          <p className="page-subtitle">Riwayat lengkap data pengukuran biomarker dan status verifikasi klinis</p>
         </div>
-        <Link
-          href="/dashboard"
-          className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-foreground text-sm font-medium rounded-lg transition-colors duration-200"
-        >
-          Kembali ke Dashboard
+        <Link href="/dashboard">
+          <Button variant="secondary" icon={<ArrowLeft size={16} />} iconPosition="left" size="sm">
+            Kembali ke Dashboard
+          </Button>
         </Link>
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-border pb-3 overflow-x-auto">
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-            filter === 'all'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'bg-slate-100 dark:bg-slate-800 text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          Semua Data ({data.length})
-        </button>
-        <button
-          onClick={() => setFilter('raw')}
-          className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-            filter === 'raw'
-              ? 'bg-amber-500 text-white shadow-sm'
-              : 'bg-slate-100 dark:bg-slate-800 text-amber-600 dark:text-amber-400 hover:text-foreground'
-          }`}
-        >
-          <Clock size={14} />
-          Membutuhkan Verifikasi ({rawCount})
-        </button>
-        <button
-          onClick={() => setFilter('verified')}
-          className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-            filter === 'verified'
-              ? 'bg-emerald-600 text-white shadow-sm'
-              : 'bg-slate-100 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 hover:text-foreground'
-          }`}
-        >
-          <Check size={14} />
-          Terverifikasi ({verifiedCount})
-        </button>
-        {rejectedCount > 0 && (
-          <button
-            onClick={() => setFilter('rejected')}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
-              filter === 'rejected'
-                ? 'bg-red-600 text-white shadow-sm'
-                : 'bg-slate-100 dark:bg-slate-800 text-red-600 dark:text-red-400 hover:text-foreground'
-            }`}
-          >
-            <ShieldAlert size={14} />
-            Ditolak ({rejectedCount})
-          </button>
-        )}
+      <div className="flex items-center gap-2.5 border-b border-border/80 pb-3 overflow-x-auto">
+        {filterTabs.map((tab) => {
+          if (tab.condition === false) return null;
+          const isActive = filter === tab.key;
+          const Icon = tab.icon;
+          
+          // Distinct colors matching image 4
+          const getTabColorClass = () => {
+            if (!isActive) {
+              if (tab.key === 'raw') return 'bg-amber-100/70 text-amber-800 hover:bg-amber-100 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/50';
+              if (tab.key === 'verified') return 'bg-emerald-100/70 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/50';
+              if (tab.key === 'rejected') return 'bg-red-100/70 text-red-800 hover:bg-red-100 border border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800/50';
+              return 'bg-white/80 hover:bg-white text-slate-700 border border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
+            }
+            if (tab.key === 'raw') return 'bg-amber-500 text-white shadow-md border border-amber-600';
+            if (tab.key === 'verified') return 'bg-emerald-600 text-white shadow-md border border-emerald-700';
+            if (tab.key === 'rejected') return 'bg-red-600 text-white shadow-md border border-red-700';
+            return 'bg-blue-600 text-white shadow-md border border-blue-700';
+          };
+
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setFilter(tab.key)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ease-out whitespace-nowrap flex items-center gap-1.5 shadow-xs ${getTabColorClass()}`}
+            >
+              {Icon && <Icon size={14} strokeWidth={2.5} />}
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Content List */}
       {loading ? (
         <div className="py-12 text-center text-muted-foreground">
-          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <div className="spinner mx-auto mb-3" />
           <p className="text-sm">Memuat data verifikasi...</p>
         </div>
       ) : filteredData.length === 0 ? (
@@ -139,91 +153,75 @@ export default function VerifikasiClient() {
       ) : (
         <div className="grid grid-cols-1 gap-4">
           {filteredData.map((item: any) => {
-            const isVerified = item.status === 'verified';
-            const isRejected = item.status === 'rejected';
-            const isRaw = item.status === 'raw';
+            const accentColor = getStatusAccent(item.status);
 
             return (
-              <Card
-                key={item.id}
-                className={`glass-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border ${
-                  isVerified
-                    ? 'border-emerald-200 dark:border-emerald-500/20'
-                    : isRejected
-                    ? 'border-red-200 dark:border-red-500/20'
-                    : 'border-amber-200 dark:border-amber-500/20'
-                }`}
-              >
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <span className="font-mono text-sm font-bold text-foreground">
-                      ID: {item.patient_id || item.tracking_id}
-                    </span>
-                    {isVerified ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 text-xs font-semibold uppercase tracking-wider">
-                        <Check size={12} /> Terverifikasi
-                      </span>
-                    ) : isRejected ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-400 border border-red-200 dark:border-red-500/30 text-xs font-semibold uppercase tracking-wider">
-                        <ShieldAlert size={12} /> Ditolak
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30 text-xs font-semibold uppercase tracking-wider">
-                        <Clock size={12} /> Require Verification
-                      </span>
-                    )}
-                    <span className="text-xs text-muted-foreground font-mono">
-                      {item.created_at ? new Date(item.created_at).toLocaleString('id-ID') : '-'}
-                    </span>
+              <Card key={item.id} className="card-hover" variant="hover" accent={accentColor as any}>
+                <CardContent className="p-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-3 flex-1">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className="font-mono text-sm font-bold text-foreground">
+                          ID: {item.patient_id || item.tracking_id}
+                        </span>
+                        {getStatusBadge(item.status)}
+                        <span className="text-xs text-muted-foreground font-mono">
+                          {item.created_at ? new Date(item.created_at).toLocaleString('id-ID') : '-'}
+                        </span>
+                      </div>
+
+                      {/* Biomarkers */}
+                      <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                        <span>miRNA-31: <strong className="text-foreground">{item.mirna31 || '-'} RQ</strong></span>
+                        <span>Laktat: <strong className="text-foreground">{item.lactate_uM ? (item.lactate_uM / 1000).toFixed(2) : '-'} mM</strong></span>
+                        <span>IL-8: <strong className="text-foreground">{item.il8_pg_mg || '-'} pg/mL</strong></span>
+                      </div>
+
+                      {/* AI Prediction */}
+                      <div className="flex items-center gap-4 text-xs font-semibold">
+                        <span>AI Prediksi: <span className={item.ai_pred_class === 'OSCC' ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}>{item.ai_pred_class || 'N/A'}</span></span>
+                        <span>Probabilitas OSCC: <span className="text-foreground">{item.ai_probability ? Number(item.ai_probability).toFixed(1) + '%' : 'N/A'}</span></span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex sm:flex-col gap-2 shrink-0">
+                      <Link
+                        href={`/verify/${item.tracking_id}`}
+                        className={`inline-flex items-center justify-center font-bold px-4 py-2 rounded-xl text-xs transition-all duration-200 shadow-sm w-full sm:w-auto ${
+                          item.status === 'raw'
+                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-amber-500/25'
+                            : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-500/25'
+                        }`}
+                      >
+                        {item.status === 'raw' ? (
+                          <>
+                            <Clock size={14} className="mr-1.5" />
+                            Verifikasi Case
+                          </>
+                        ) : (
+                          <>
+                            <Eye size={14} className="mr-1.5" />
+                            Lihat Detail
+                          </>
+                        )}
+                      </Link>
+
+                      {role === 'admin' && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          icon={<Trash2 size={13} />}
+                          iconPosition="left"
+                          onClick={() => handleDelete(item.tracking_id)}
+                          className="w-full sm:w-auto"
+                        >
+                          Hapus
+                        </Button>
+                      )}
+                    </div>
                   </div>
-
-                  {/* Biomarkers */}
-                  <div className="flex flex-wrap gap-4 text-xs text-muted-foreground pt-1">
-                    <span>miRNA-31: <strong className="text-foreground">{item.mirna31 || '-'} RQ</strong></span>
-                    <span>Laktat: <strong className="text-foreground">{item.lactate_uM ? (item.lactate_uM / 1000).toFixed(2) : '-'} mM</strong></span>
-                    <span>IL-8: <strong className="text-foreground">{item.il8_pg_mg || '-'} pg/mL</strong></span>
-                  </div>
-
-                  {/* AI Prediction */}
-                  <div className="flex items-center gap-4 text-xs font-semibold">
-                    <span>AI Prediksi: <span className={item.ai_pred_class === 'OSCC' ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}>{item.ai_pred_class || 'N/A'}</span></span>
-                    <span>Probabilitas OSCC: <span className="text-foreground">{item.ai_probability ? Number(item.ai_probability).toFixed(1) + '%' : 'N/A'}</span></span>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex sm:flex-col gap-2 shrink-0">
-                  <Link
-                    href={`/verify/${item.tracking_id}`}
-                    className={`px-4 py-2 rounded-lg text-xs font-semibold text-center text-white transition-all flex items-center justify-center gap-1.5 shadow-sm ${
-                      isRaw
-                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
-                        : 'bg-blue-600 hover:bg-blue-700'
-                    }`}
-                  >
-                    {isRaw ? (
-                      <>
-                        <Clock size={14} />
-                        Verifikasi Case
-                      </>
-                    ) : (
-                      <>
-                        <Eye size={14} />
-                        Lihat Detail
-                      </>
-                    )}
-                  </Link>
-
-                  {role === 'admin' && (
-                    <button
-                      onClick={() => handleDelete(item.tracking_id)}
-                      className="px-4 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1"
-                    >
-                      <Trash2 size={13} />
-                      Hapus
-                    </button>
-                  )}
-                </div>
+                </CardContent>
               </Card>
             );
           })}

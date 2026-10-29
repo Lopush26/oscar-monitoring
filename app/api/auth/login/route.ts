@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     const secret = process.env.JWT_SECRET || 'oscar_super_secret_jwt_key_2026';
     const token = jwt.sign(
-      { userId: user.id, role: user.role },
+      { userId: user.id, username: user.username, role: user.role },
       secret,
       { expiresIn: '24h' }
     );
